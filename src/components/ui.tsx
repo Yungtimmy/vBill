@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { statusLabel, statusTone } from "@/lib/status";
 
 export function Button({
   children,
@@ -9,15 +10,14 @@ export function Button({
   variant?: "primary" | "ghost" | "danger";
 }) {
   const styles = {
-    primary:
-      "bg-[#EEEEEF] text-[#0F0F11] hover:bg-[#C9A227] hover:text-[#0F0F11]",
-    ghost: "bg-transparent text-[#EEEEEF] border border-[#2A2A2F] hover:bg-[#C9A227] hover:text-[#0F0F11] hover:border-[#C9A227]",
-    danger: "bg-transparent text-[#C45C5C] border border-[#2A2A2F] hover:bg-[#C45C5C] hover:text-[#0F0F11]",
+    primary: "bg-[#0C7A4D] text-[#F6F5F2] hover:bg-[#09653f]",
+    ghost: "bg-transparent text-[#161616] border border-[#E6E4DE] hover:bg-[#161616] hover:text-[#F6F5F2]",
+    danger: "bg-transparent text-[#C23B3B] border border-[#E6E4DE] hover:bg-[#C23B3B] hover:text-[#F6F5F2]",
   }[variant];
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center px-5 py-3 text-sm font-medium transition-transform duration-150 hover:scale-95 active:scale-90 disabled:opacity-40 disabled:pointer-events-none",
+        "inline-flex items-center justify-center px-5 py-3 text-sm font-medium rounded-md transition-transform duration-150 hover:scale-95 active:scale-90 disabled:opacity-40 disabled:pointer-events-none",
         styles,
         className,
       )}
@@ -35,7 +35,7 @@ export function Input({
   return (
     <input
       className={cn(
-        "w-full bg-[#1A1A1E] border border-[#2A2A2F] text-[#EEEEEF] px-4 py-3 outline-none focus:border-[#C9A227] placeholder:text-[#6C6C74]",
+        "w-full bg-white border border-[#E6E4DE] text-[#161616] px-4 py-3 rounded-md outline-none focus:border-[#0C7A4D] placeholder:text-[#8A8A8A]",
         className,
       )}
       {...props}
@@ -45,39 +45,28 @@ export function Input({
 
 export function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6C6C74] block mb-2">
-      {children}
-    </label>
-  );
-}
-
-export function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-6">
-      {children}
-    </p>
+    <label className="text-xs font-medium text-[#6B6B6B] block mb-2">{children}</label>
   );
 }
 
 export function StatusPill({ status }: { status: string }) {
-  const color =
-    status === "PAID"
-      ? "text-[#6F8F72] border-[#6F8F72]"
-      : status === "PROCESSING"
-        ? "text-[#C9A227] border-[#C9A227]"
-        : status === "FAILED" || status === "CANCELLED" || status === "EXPIRED"
-          ? "text-[#C45C5C] border-[#C45C5C]"
-          : "text-[#A0A0AB] border-[#2A2A2F]";
+  const tone = statusTone(status);
+  const color = {
+    ok: "text-[#0C7A4D] bg-[#E7F5EE]",
+    wait: "text-[#C4841D] bg-[#F8EFD9]",
+    bad: "text-[#C23B3B] bg-[#F8E4E4]",
+    muted: "text-[#6B6B6B] bg-[#EFEDE8]",
+  }[tone];
   return (
-    <span className={cn("font-mono text-[10px] uppercase tracking-[0.16em] border px-2 py-1", color)}>
-      {status}
+    <span className={cn("inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full", color)}>
+      {tone === "ok" ? `${statusLabel(status)}` : statusLabel(status)}
     </span>
   );
 }
 
 export function FieldError({ children }: { children?: React.ReactNode }) {
   if (!children) return null;
-  return <p className="text-[#C45C5C] text-sm mt-2">{children}</p>;
+  return <p className="text-[#C23B3B] text-sm mt-2">{children}</p>;
 }
 
 export function Card({
@@ -88,6 +77,15 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div className={cn("bg-[#1A1A1E] border border-[#2A2A2F] p-6", className)}>{children}</div>
+    <div className={cn("bg-white border border-[#E6E4DE] rounded-xl p-6", className)}>{children}</div>
+  );
+}
+
+export function Check({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="flex items-center gap-2 text-sm text-[#0C7A4D]">
+      <span aria-hidden>✓</span>
+      <span>{children}</span>
+    </p>
   );
 }

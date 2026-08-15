@@ -2,25 +2,22 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { createWalletClient, custom, type Hex } from "viem";
-import { Button, Card, StatusPill } from "@/components/ui";
+import { Button, Check } from "@/components/ui";
+import { OnChainProof } from "@/components/on-chain-proof";
+import { PublicFrame } from "@/components/public-frame";
 import { erc20Abi } from "@/lib/erc20";
-import { shortenAddress } from "@/lib/addresses";
+import { shortenAddress, shortenHash } from "@/lib/addresses";
 import { isPrivyConfigured } from "@/lib/privy-public";
+import { formatDate } from "@/lib/status";
 
 type PayPayload = {
-  networkMode: "demo" | "production";
   network: {
     chainId: number;
     chainName: string;
-    tokenSymbol: string;
-    tokenAddress: string;
-    tokenDecimals: number;
     gasToken: string;
-    requiredConfirmations: number;
   };
   invoice: {
     publicId: string;
@@ -32,29 +29,20 @@ type PayPayload = {
     chainId: number;
     amountBaseUnits: string;
     amountDisplay: string;
-    receivedBaseUnits: string;
-    receivedDisplay: string;
     remainingBaseUnits: string;
-    remainingDisplay: string;
-    items: { description: string; quantity: string; unitPrice: string }[];
-    payments: { id: string; status: string; txHash: string; rejectReason?: string | null }[];
+    dueDate?: string | null;
+    payments: { id: string; status: string; txHash: string }[];
   };
 };
 
-type Phase =
-  | "ready"
-  | "wallet"
-  | "submitted"
-  | "verifying"
-  | "confirmed"
-  | "failed";
+type Phase = "ready" | "confirm" | "wallet" | "verifying" | "confirmed" | "failed";
 
 export default function PayPage() {
   const params = useParams<{ publicId: string }>();
   const [data, setData] = useState<PayPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("ready");
-  const [note, setNote] = useState<string>("Ready to pay");
+  const [sentHash, setSentHash] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/pay/${params.publicId}`);
@@ -63,16 +51,12 @@ export default function PayPage() {
     setData(json);
     if (json.invoice.status === "PAID" || json.invoice.status === "OVERPAID") {
       setPhase("confirmed");
-      setNote("Payment verified. Your payment has been confirmed on-chain.");
+      const paid = json.invoice.payments?.find((p: { status: string }) => p.status === "CONFIRMED");
+      if (paid?.txHash) setSentHash(paid.txHash);
     } else if (json.invoice.status === "PROCESSING") {
       setPhase("verifying");
-      setNote("Checking the blockchain.");
     } else if (json.invoice.status === "FAILED") {
       setPhase("failed");
-      setNote("Payment failed. The on-chain transaction did not succeed.");
-    } else {
-      setPhase("ready");
-      setNote("Ready to pay");
     }
     return json as PayPayload;
   }, [params.publicId]);
@@ -83,99 +67,146 @@ export default function PayPage() {
 
   if (error && !data) {
     return (
-      <main className="max-w-xl mx-auto px-6 py-28">
-        <p className="text-[#C45C5C]">{error}</p>
-      </main>
+      <PublicFrame>
+        <p className="max-w-md mx-auto text-[#C23B3B]">{error}</p>
+      </PublicFrame>
     );
   }
   if (!data) {
     return (
-      <main className="max-w-xl mx-auto px-6 py-28 font-mono text-xs tracking-[0.2em] uppercase text-[#6C6C74]">
-        Loading invoice
-      </main>
+      <PublicFrame>
+        <p className="text-center text-[#6B6B6B]">Loading</p>
+      </PublicFrame>
     );
   }
 
-  const payable =
-    data.invoice.status === "PENDING" ||
-    data.invoice.status === "UNDERPAID" ||
-    data.invoice.status === "FAILED";
+  const paid = data.invoice.payments.find((p) => p.status === "CONFIRMED");
+  const hash = sentHash ?? paid?.txHash ?? null;
+  const explorer = hash ? `https://polygonscan.com/tx/${hash}` : null;
+
+  if (phase === "confirmed") {
+    return (
+      <PublicFrame>
+        <div className="max-w-md mx-auto text-center pt-8">
+          <p className="text-sm text-[#6B6B6B]">Payment sent</p>
+          <div className="mx-auto mt-8 h-16 w-16 rounded-full bg-[#E7F5EE] text-[#0C7A4D] text-3xl flex items-center justify-center">
+            ✓
+          </div>
+          <p className="mt-8 text-4xl tracking-tight">{data.invoice.amountDisplay} VERSE</p>
+          <p className="mt-3 text-[#6B6B6B]">Transaction verified</p>
+          <p className="mt-8 text-sm text-[#6B6B6B]">Polygon</p>
+          {hash && <p className="font-mono text-sm mt-1">{shortenHash(hash)}</p>}
+          <div className="mt-8 space-y-2 text-left max-w-xs mx-auto">
+            <Check>Recipient matched</Check>
+            <Check>Amount matched</Check>
+            <Check>VERSE contract matched</Check>
+            <Check>On-chain confirmation</Check>
+          </div>
+          {explorer && (
+            <a href={explorer} target="_blank" rel="noreferrer" className="inline-block mt-8">
+              <Button>View on PolygonScan</Button>
+            </a>
+          )}
+          <div className="mt-8">
+            <OnChainProof verified txHash={hash} explorerUrl={explorer} />
+          </div>
+        </div>
+      </PublicFrame>
+    );
+  }
+
+  if (phase === "confirm") {
+    return (
+      <PublicFrame>
+        <div className="max-w-md mx-auto pt-4">
+          <p className="text-sm text-[#6B6B6B] text-center">Confirm payment</p>
+          <p className="text-center mt-6 text-[#6B6B6B]">You are paying</p>
+          <p className="text-center text-4xl tracking-tight mt-2">{data.invoice.amountDisplay} VERSE</p>
+          <div className="mt-10 space-y-5 text-sm">
+            <div>
+              <p className="text-[#6B6B6B]">To</p>
+              <p className="mt-1 font-medium">{data.invoice.businessName}</p>
+              <p className="font-mono text-[#6B6B6B]">{shortenAddress(data.invoice.merchantWallet)}</p>
+            </div>
+            <div>
+              <p className="text-[#6B6B6B]">Network</p>
+              <p className="mt-1 font-medium">Polygon</p>
+            </div>
+          </div>
+          {isPrivyConfigured() && (
+            <PayActions
+              data={data}
+              publicId={params.publicId}
+              phase={phase}
+              setPhase={setPhase}
+              setError={setError}
+              setSentHash={setSentHash}
+              onReload={load}
+              label="Confirm and pay"
+            />
+          )}
+          {error && <p className="text-[#C23B3B] mt-4">{error}</p>}
+        </div>
+      </PublicFrame>
+    );
+  }
 
   return (
-    <main className="max-w-xl mx-auto px-6 py-16">
-      <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-6">
-        VerseBill
-      </p>
-      <h1 className="font-[family-name:var(--font-syne)] text-4xl tracking-tight mb-2">
-        Invoice {data.invoice.invoiceNumber}
-      </h1>
-      <p className="text-[#A0A0AB] mb-8">{data.invoice.businessName}</p>
-      <StatusPill status={data.invoice.status} />
-
-      <ul className="mt-10 divide-y divide-[#2A2A2F] border-y border-[#2A2A2F]">
-        {data.invoice.items.map((item, i) => (
-          <li key={i} className="py-4 flex justify-between">
-            <span>
-              {item.description} × {item.quantity}
-            </span>
-            <span>{item.unitPrice} VERSE</span>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-8 space-y-3">
-        <Row label="Total" value={`${data.invoice.amountDisplay} VERSE`} />
-        <Row label="Token" value="VERSE" />
-        <Row label="Network" value={data.network.chainName} />
-        <Row label="Destination" value={shortenAddress(data.invoice.merchantWallet)} mono />
-        <Row label="Full destination" value={data.invoice.merchantWallet} mono />
-        <Row label="Gas" value={`${data.network.gasToken} (not VERSE)`} />
-      </div>
-
-      {data.invoice.status === "UNDERPAID" && (
-        <Card className="mt-8">
-          <p>Expected: {data.invoice.amountDisplay} VERSE</p>
-          <p>Received: {data.invoice.receivedDisplay} VERSE</p>
-          <p>Remaining: {data.invoice.remainingDisplay} VERSE</p>
-        </Card>
-      )}
-
-      <p className="mt-10 text-[#A0A0AB]">{note}</p>
-      {error && <p className="mt-3 text-[#C45C5C]">{error}</p>}
-
-      <div className="mt-8 flex flex-col gap-3">
-        {payable && isPrivyConfigured() && (
-          <PayActions
-            data={data}
-            publicId={params.publicId}
-            phase={phase}
-            setPhase={setPhase}
-            setNote={setNote}
-            setError={setError}
-            onReload={load}
-          />
+    <PublicFrame>
+      <div className="max-w-md mx-auto pt-4">
+        <p className="text-center text-sm text-[#6B6B6B]">Payment request</p>
+        <div className="mt-6 bg-white border border-[#E6E4DE] rounded-2xl px-6 py-10 text-center">
+          <p className="text-4xl tracking-tight">{data.invoice.amountDisplay} VERSE</p>
+          <p className="mt-4 font-medium tracking-wide">{data.invoice.businessName}</p>
+        </div>
+        {data.invoice.dueDate && (
+          <p className="text-center text-sm text-[#6B6B6B] mt-4">Due {formatDate(data.invoice.dueDate)}</p>
         )}
-        {payable && !isPrivyConfigured() && (
-          <p className="text-[#C45C5C]">
-            Wallet payment is unavailable until Privy is configured.
+        <dl className="mt-8 space-y-4 text-sm">
+          <div>
+            <dt className="text-[#6B6B6B]">Network</dt>
+            <dd className="mt-1 font-medium">Polygon</dd>
+          </div>
+          <div>
+            <dt className="text-[#6B6B6B]">Paying to</dt>
+            <dd className="mt-1 font-mono">{shortenAddress(data.invoice.merchantWallet)}</dd>
+          </div>
+        </dl>
+        {phase === "verifying" || phase === "wallet" ? (
+          <p className="mt-8 text-center text-[#C4841D]">
+            {phase === "wallet" ? "Confirm in your wallet" : "Transaction verified. Confirming on-chain."}
           </p>
+        ) : (
+          <div className="mt-8">
+            {isPrivyConfigured() ? (
+              <PayActions
+                data={data}
+                publicId={params.publicId}
+                phase={phase}
+                setPhase={setPhase}
+                setError={setError}
+                setSentHash={setSentHash}
+                onReload={load}
+                label={`Pay ${data.invoice.amountDisplay} VERSE`}
+                preview
+              />
+            ) : (
+              <p className="text-[#C23B3B]">Wallet payment is unavailable until Privy is configured.</p>
+            )}
+          </div>
         )}
-        <Image
-          src={`/api/pay/${data.invoice.publicId}/qr`}
-          alt="Payment link QR code"
-          width={160}
-          height={160}
-          className="mt-4"
-          unoptimized
-        />
-        <Link
-          href={`/verify/${data.invoice.publicId}`}
-          className="text-sm text-[#A0A0AB] underline"
-        >
-          Open payment proof
+        {error && <p className="text-[#C23B3B] mt-4">{error}</p>}
+        <div className="mt-8 space-y-2">
+          <Check>Recipient verified</Check>
+          <Check>Token verified</Check>
+          <Check>Invoice verified</Check>
+        </div>
+        <p className="mt-6 text-center text-sm text-[#6B6B6B]">Verified merchant</p>
+        <Link href={`/verify/${data.invoice.publicId}`} className="block text-center text-sm underline mt-6 text-[#6B6B6B]">
+          Payment receipt
         </Link>
       </div>
-    </main>
+    </PublicFrame>
   );
 }
 
@@ -184,45 +215,52 @@ function PayActions({
   publicId,
   phase,
   setPhase,
-  setNote,
   setError,
+  setSentHash,
   onReload,
+  label,
+  preview,
 }: {
   data: PayPayload;
   publicId: string;
   phase: Phase;
   setPhase: (p: Phase) => void;
-  setNote: (n: string) => void;
   setError: (n: string | null) => void;
+  setSentHash: (h: string | null) => void;
   onReload: () => Promise<unknown>;
+  label: string;
+  preview?: boolean;
 }) {
   const { ready, authenticated, login } = usePrivy();
   const { wallets } = useWallets();
 
-  async function pay() {
+  async function start() {
     setError(null);
     if (!authenticated) {
       login();
       return;
     }
+    if (preview && phase === "ready") {
+      setPhase("confirm");
+      return;
+    }
+    await send();
+  }
+
+  async function send() {
     const wallet = wallets[0];
     if (!wallet) {
       setError("No wallet is available.");
       return;
     }
     setPhase("wallet");
-    setNote("Confirm payment in your wallet");
     try {
       await wallet.switchChain(data.invoice.chainId);
       const provider = await wallet.getEthereumProvider();
       const chain = {
         id: data.network.chainId,
         name: data.network.chainName,
-        nativeCurrency: {
-          name: data.network.gasToken,
-          symbol: data.network.gasToken,
-          decimals: 18,
-        },
+        nativeCurrency: { name: data.network.gasToken, symbol: data.network.gasToken, decimals: 18 },
         rpcUrls: { default: { http: [] as string[] } },
       };
       const walletClient = createWalletClient({
@@ -242,8 +280,8 @@ function PayActions({
         account: wallet.address as Hex,
         chain,
       });
-      setPhase("submitted");
-      setNote("Payment submitted. We're verifying your transaction.");
+      setSentHash(hash);
+      setPhase("verifying");
       const submit = await fetch(`/api/pay/${publicId}/submit`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -252,11 +290,9 @@ function PayActions({
       const result = await submit.json();
       if (!submit.ok) {
         setPhase("failed");
-        setNote(result.error || "Payment could not be recorded.");
+        setError(result.error || "Payment could not be recorded.");
         return;
       }
-      setPhase("verifying");
-      setNote(result.reason || "Checking the blockchain.");
       if (!result.payment?.id) {
         await onReload();
         return;
@@ -267,60 +303,35 @@ function PayActions({
         const json = await res.json();
         if (json.invoiceStatus === "PAID" || json.invoiceStatus === "OVERPAID") {
           setPhase("confirmed");
-          setNote("Payment verified. Your payment has been confirmed on-chain.");
           await onReload();
           return;
         }
         if (json.invoiceStatus === "UNDERPAID") {
           setPhase("ready");
-          setNote(`Expected: ${data.invoice.amountDisplay} VERSE. Received is less than the invoice.`);
+          setError("Amount received is less than the invoice.");
           await onReload();
           return;
         }
         if (json.payment?.status === "REJECTED" || json.payment?.status === "FAILED") {
           setPhase("failed");
-          setNote(json.reason || "Payment failed.");
+          setError(json.reason || "Payment failed.");
           return;
         }
-        setNote(json.reason || "Checking the blockchain.");
       }
       await onReload();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Wallet error.";
-      setPhase("ready");
+      setPhase(preview ? "ready" : "confirm");
       if (/user rejected|denied/i.test(msg)) setError("Wallet rejected the transaction.");
-      else if (/insufficient/i.test(msg)) {
-        setError("Insufficient VERSE balance or insufficient POL for gas.");
-      } else if (/network|chain/i.test(msg)) {
-        setError("Wrong network. Switch to the network shown on this invoice.");
-      } else setError(msg);
+      else if (/insufficient/i.test(msg)) setError("Insufficient VERSE or POL for gas.");
+      else if (/network|chain/i.test(msg)) setError("Wrong network. Switch to Polygon.");
+      else setError(msg);
     }
   }
 
   return (
-    <Button onClick={pay} disabled={!ready || phase === "wallet" || phase === "verifying"}>
-      {authenticated ? "Pay with VERSE" : "Continue to pay"}
+    <Button className="w-full mt-6" onClick={start} disabled={!ready || phase === "wallet" || phase === "verifying"}>
+      {authenticated ? label : "Continue with email"}
     </Button>
   );
 }
-
-function Row({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6C6C74]">
-        {label}
-      </span>
-      <span className={mono ? "font-mono text-sm break-all" : ""}>{value}</span>
-    </div>
-  );
-}
-
-

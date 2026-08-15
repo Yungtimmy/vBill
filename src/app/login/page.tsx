@@ -4,6 +4,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui";
+import { PublicFrame } from "@/components/public-frame";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { isPrivyConfigured } from "@/lib/privy-public";
 import { MissingConfig } from "@/components/missing-config";
@@ -27,25 +28,20 @@ function LoginInner() {
   }, [authenticated, readyOnServer, router]);
 
   return (
-    <div className="min-h-[80vh] flex items-center">
-      <div className="max-w-xl mx-auto px-6 py-28">
-        <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-6">
-          Sign in
+    <PublicFrame>
+      <div className="max-w-md mx-auto pt-10">
+        <h1 className="text-3xl font-medium tracking-tight mb-3">Continue with email</h1>
+        <p className="text-[#6B6B6B] mb-8 leading-relaxed">
+          An embedded wallet is created for you. You will not be asked for a seed phrase.
         </p>
-        <h1 className="font-[family-name:var(--font-syne)] text-4xl md:text-5xl tracking-tight mb-6">
-          Continue with email
-        </h1>
-        <p className="text-[#A0A0AB] text-lg leading-relaxed mb-10">
-          An embedded Verse wallet is created for you. You will not be asked for a seed phrase.
-        </p>
-        <Button onClick={() => login()} disabled={!ready}>
-          {authenticated ? "Preparing your wallet" : "Continue with email or wallet"}
+        <Button onClick={() => login()} disabled={!ready} className="w-full">
+          {authenticated ? "Preparing your wallet" : "Continue with email"}
         </Button>
         {authenticated && !error && (
-          <p className="mt-6 text-[#6F8F72]">Your Verse wallet is ready.</p>
+          <p className="mt-6 text-[#0C7A4D]">Your Verse wallet is ready.</p>
         )}
-        {error && <p className="mt-6 text-[#C45C5C]">{error}</p>}
+        {error && <p className="mt-6 text-[#C23B3B]">{error}</p>}
       </div>
-    </div>
+    </PublicFrame>
   );
 }

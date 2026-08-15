@@ -8,8 +8,16 @@ import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
 import { MissingConfig } from "@/components/missing-config";
+import { formatDate } from "@/lib/status";
 
-const FILTERS = ["ALL", "PAID", "PENDING", "PROCESSING", "FAILED", "UNDERPAID", "OVERPAID"] as const;
+const FILTERS = [
+  { id: "ALL", label: "All" },
+  { id: "DRAFT", label: "Draft" },
+  { id: "PENDING", label: "Pending" },
+  { id: "PROCESSING", label: "Sent" },
+  { id: "PAID", label: "Paid" },
+  { id: "EXPIRED", label: "Overdue" },
+] as const;
 
 type Invoice = {
   id: string;
@@ -26,7 +34,7 @@ export default function InvoicesPage() {
 
 function InvoicesInner() {
   const { readyOnServer } = useAccountBootstrap();
-  const [status, setStatus] = useState<(typeof FILTERS)[number]>("ALL");
+  const [status, setStatus] = useState<(typeof FILTERS)[number]["id"]>("ALL");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,49 +47,42 @@ function InvoicesInner() {
 
   return (
     <AppShell>
-      <div className="flex items-end justify-between gap-6 mb-8">
-        <div>
-          <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-6">
-            Ledger
-          </p>
-          <h1 className="font-[family-name:var(--font-syne)] text-4xl tracking-tight">
-            Invoices
-          </h1>
-        </div>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h1 className="text-2xl font-medium tracking-tight">Invoices</h1>
         <Link href="/invoices/new">
-          <Button>New invoice</Button>
+          <Button>Create invoice</Button>
         </Link>
       </div>
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="flex flex-wrap gap-2 mb-6">
         {FILTERS.map((f) => (
           <button
-            key={f}
-            onClick={() => setStatus(f)}
-            className={`font-mono text-[10px] tracking-[0.16em] uppercase px-3 py-2 border ${
-              status === f ? "border-[#C9A227] text-[#C9A227]" : "border-[#2A2A2F] text-[#6C6C74]"
+            key={f.id}
+            onClick={() => setStatus(f.id)}
+            className={`text-sm px-3 py-1.5 rounded-full border ${
+              status === f.id
+                ? "border-[#161616] bg-[#161616] text-[#F6F5F2]"
+                : "border-[#E6E4DE] text-[#6B6B6B] bg-white"
             }`}
           >
-            {f}
+            {f.label}
           </button>
         ))}
       </div>
-      {error && <p className="text-[#C45C5C] mb-4">{error}</p>}
+      {error && <p className="text-[#C23B3B] mb-4">{error}</p>}
       {invoices.length === 0 ? (
-        <p className="text-[#6C6C74]">No invoices in this view.</p>
+        <p className="text-[#6B6B6B]">No invoices in this view.</p>
       ) : (
-        <div className="divide-y divide-[#2A2A2F] border-t border-[#2A2A2F]">
+        <div className="bg-white border border-[#E6E4DE] rounded-xl divide-y divide-[#E6E4DE]">
           {invoices.map((inv) => (
             <Link
               key={inv.id}
               href={`/invoices/${inv.id}`}
-              className="grid md:grid-cols-4 gap-3 py-4 hover:bg-[#1A1A1E] px-2"
+              className="grid grid-cols-[1fr_auto] md:grid-cols-[140px_1fr_auto_auto] gap-3 items-center px-4 py-3 hover:bg-[#F6F5F2]"
             >
-              <span>{inv.invoiceNumber}</span>
-              <span className="text-[#A0A0AB]">{inv.customerName}</span>
+              <span className="font-medium">{inv.invoiceNumber}</span>
+              <span className="hidden md:block text-[#6B6B6B]">{inv.customerName}</span>
               <StatusPill status={inv.status} />
-              <span className="text-[#6C6C74] text-sm">
-                {new Date(inv.createdAt).toLocaleDateString()}
-              </span>
+              <span className="hidden md:block text-sm text-[#8A8A8A]">{formatDate(inv.createdAt)}</span>
             </Link>
           ))}
         </div>

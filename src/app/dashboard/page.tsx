@@ -8,9 +8,12 @@ import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
 import { MissingConfig } from "@/components/missing-config";
+import { formatDate } from "@/lib/status";
 
 type Stats = {
   invoiceCount: number;
+  paidCount: number;
+  overdueCount: number;
   invoicedDisplay: string;
   paidDisplay: string;
   pendingDisplay: string;
@@ -20,7 +23,6 @@ type Invoice = {
   id: string;
   invoiceNumber: string;
   customerName: string;
-  amountBaseUnits: string;
   status: string;
   createdAt: string;
 };
@@ -51,71 +53,51 @@ function DashboardInner() {
 
   return (
     <AppShell>
-      <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-6">
-        Overview
-      </p>
-      <div className="flex items-end justify-between gap-6 mb-10">
-        <h1 className="font-[family-name:var(--font-syne)] text-4xl tracking-tight">
-          Dashboard
-        </h1>
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <h1 className="text-2xl font-medium tracking-tight">Overview</h1>
         <Link href="/invoices/new">
-          <Button>New invoice</Button>
+          <Button>Create invoice</Button>
         </Link>
       </div>
-      {(error || bootError) && (
-        <p className="text-[#C45C5C] mb-6">{error || bootError}</p>
-      )}
-      <div className="grid md:grid-cols-2 gap-4 mb-12">
+      {(error || bootError) && <p className="text-[#C23B3B] mb-6">{error || bootError}</p>}
+
+      <div className="grid sm:grid-cols-2 gap-4 mb-10">
         <Card>
-          <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#6C6C74]">
-            Total invoiced
-          </p>
-          <p className="text-3xl mt-3 font-[family-name:var(--font-syne)]">
-            {stats ? `${stats.invoicedDisplay} VERSE` : "—"}
-          </p>
+          <p className="text-sm text-[#6B6B6B]">Total received</p>
+          <p className="text-3xl mt-2 tracking-tight">{stats ? `${stats.paidDisplay} VERSE` : "—"}</p>
         </Card>
         <Card>
-          <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#6C6C74]">
-            Total paid
-          </p>
-          <p className="text-3xl mt-3 font-[family-name:var(--font-syne)] text-[#6F8F72]">
-            {stats ? `${stats.paidDisplay} VERSE` : "—"}
-          </p>
+          <p className="text-sm text-[#6B6B6B]">Outstanding</p>
+          <p className="text-3xl mt-2 tracking-tight">{stats ? `${stats.pendingDisplay} VERSE` : "—"}</p>
         </Card>
         <Card>
-          <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#6C6C74]">
-            Pending
-          </p>
-          <p className="text-3xl mt-3 font-[family-name:var(--font-syne)]">
-            {stats ? `${stats.pendingDisplay} VERSE` : "—"}
-          </p>
+          <p className="text-sm text-[#6B6B6B]">Paid invoices</p>
+          <p className="text-3xl mt-2 tracking-tight">{stats?.paidCount ?? "—"}</p>
         </Card>
         <Card>
-          <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#6C6C74]">
-            Invoices
-          </p>
-          <p className="text-3xl mt-3 font-[family-name:var(--font-syne)]">
-            {stats?.invoiceCount ?? "—"}
-          </p>
+          <p className="text-sm text-[#6B6B6B]">Overdue</p>
+          <p className="text-3xl mt-2 tracking-tight">{stats?.overdueCount ?? "—"}</p>
         </Card>
       </div>
-      <h2 className="font-[family-name:var(--font-syne)] text-2xl mb-6">Recent invoices</h2>
+
+      <div className="flex items-baseline justify-between mb-4">
+        <h2 className="text-lg font-medium">Recent invoices</h2>
+        <p className="text-sm text-[#6B6B6B]">{stats ? `${stats.invoiceCount} invoices` : ""}</p>
+      </div>
       {invoices.length === 0 ? (
-        <p className="text-[#6C6C74]">No invoices yet.</p>
+        <p className="text-[#6B6B6B]">No invoices yet.</p>
       ) : (
-        <div className="divide-y divide-[#2A2A2F] border-t border-[#2A2A2F]">
+        <div className="bg-white border border-[#E6E4DE] rounded-xl divide-y divide-[#E6E4DE]">
           {invoices.map((inv) => (
             <Link
               key={inv.id}
               href={`/invoices/${inv.id}`}
-              className="grid grid-cols-2 md:grid-cols-4 gap-3 py-4 hover:bg-[#1A1A1E] px-2"
+              className="grid grid-cols-[1fr_auto] md:grid-cols-[140px_1fr_auto_auto] gap-3 items-center px-4 py-3 hover:bg-[#F6F5F2]"
             >
-              <span>{inv.invoiceNumber}</span>
-              <span className="text-[#A0A0AB]">{inv.customerName}</span>
+              <span className="font-medium">{inv.invoiceNumber}</span>
+              <span className="hidden md:block text-[#6B6B6B]">{inv.customerName}</span>
               <StatusPill status={inv.status} />
-              <span className="text-[#6C6C74] text-sm">
-                {new Date(inv.createdAt).toLocaleDateString()}
-              </span>
+              <span className="hidden md:block text-sm text-[#8A8A8A]">{formatDate(inv.createdAt)}</span>
             </Link>
           ))}
         </div>

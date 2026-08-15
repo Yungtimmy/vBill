@@ -55,12 +55,7 @@ function SettingsInner() {
 
   return (
     <AppShell>
-      <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-6">
-        Account
-      </p>
-      <h1 className="font-[family-name:var(--font-syne)] text-4xl tracking-tight mb-8">
-        Settings
-      </h1>
+      <h1 className="text-2xl font-medium tracking-tight mb-8">Settings</h1>
       <form onSubmit={onSubmit} className="max-w-xl space-y-6">
         <div>
           <Label>Business name</Label>
@@ -68,21 +63,17 @@ function SettingsInner() {
         </div>
         <div>
           <Label>Business email</Label>
-          <Input
-            type="email"
-            value={businessEmail}
-            onChange={(e) => setBusinessEmail(e.target.value)}
-          />
+          <Input type="email" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} />
         </div>
         <div>
           <Label>Payment wallet</Label>
-          <p className="font-mono text-sm break-all text-[#A0A0AB] mb-3">{wallet || "—"}</p>
-          <Link href="/settings/wallet" className="text-sm underline text-[#A0A0AB]">
+          <p className="font-mono text-sm break-all text-[#6B6B6B] mb-3">{wallet || "—"}</p>
+          <Link href="/settings/wallet" className="text-sm underline text-[#0C7A4D]">
             Change payment wallet
           </Link>
         </div>
-        {error && <p className="text-[#C45C5C]">{error}</p>}
-        {saved && <p className="text-[#6F8F72]">Saved.</p>}
+        {error && <p className="text-[#C23B3B]">{error}</p>}
+        {saved && <p className="text-[#0C7A4D]">Saved.</p>}
         <Button type="submit">Save</Button>
       </form>
     </AppShell>

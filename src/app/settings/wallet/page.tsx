@@ -38,13 +38,8 @@ function WalletSettingsInner() {
 
   return (
     <AppShell>
-      <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-6">
-        High risk
-      </p>
-      <h1 className="font-[family-name:var(--font-syne)] text-4xl tracking-tight mb-6">
-        Payment wallet
-      </h1>
-      <p className="text-[#A0A0AB] max-w-xl mb-8 leading-relaxed">
+      <h1 className="text-2xl font-medium tracking-tight mb-4">Payment wallet</h1>
+      <p className="text-[#6B6B6B] max-w-xl mb-8 leading-relaxed">
         Existing invoices keep their original destination. Only new invoices use the new wallet.
         This requires a recently authenticated session.
       </p>
@@ -58,15 +53,13 @@ function WalletSettingsInner() {
             required
           />
         </div>
-        {error && <p className="text-[#C45C5C]">{error}</p>}
-        {ok && <p className="text-[#6F8F72]">Wallet updated for future invoices.</p>}
+        {error && <p className="text-[#C23B3B]">{error}</p>}
+        {ok && <p className="text-[#0C7A4D]">Wallet updated for future invoices.</p>}
         <Button type="submit">Update wallet</Button>
       </form>
       <div className="mt-16 max-w-xl">
-        <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-4">
-          Embedded wallet
-        </p>
-        <p className="text-[#A0A0AB] mb-4">
+        <p className="text-sm font-medium mb-2">Embedded wallet</p>
+        <p className="text-[#6B6B6B] mb-4">
           Export uses Privy’s official wallet export. VerseBill never asks for a seed phrase or
           private key.
         </p>

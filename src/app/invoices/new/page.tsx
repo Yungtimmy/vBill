@@ -22,6 +22,7 @@ function NewInvoiceInner() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [notes, setNotes] = useState("");
   const [items, setItems] = useState<Line[]>([
     { description: "", quantity: "1", unitPrice: "" },
   ]);
@@ -40,6 +41,7 @@ function NewInvoiceInner() {
           customerName,
           customerEmail: customerEmail || undefined,
           dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+          notes: notes || undefined,
           items,
           publish,
         }),
@@ -54,31 +56,22 @@ function NewInvoiceInner() {
 
   return (
     <AppShell>
-      <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-6">
-        New
-      </p>
-      <h1 className="font-[family-name:var(--font-syne)] text-4xl tracking-tight mb-8">
-        Create invoice
-      </h1>
+      <h1 className="text-2xl font-medium tracking-tight mb-8">Create invoice</h1>
       <form className="max-w-2xl space-y-6">
         <div>
-          <Label>Customer name</Label>
+          <Label>Customer</Label>
           <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} required />
         </div>
         <div>
           <Label>Customer email</Label>
-          <Input
-            type="email"
-            value={customerEmail}
-            onChange={(e) => setCustomerEmail(e.target.value)}
-          />
+          <Input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} />
         </div>
         <div>
           <Label>Due date</Label>
           <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </div>
-        <div className="space-y-4">
-          <Label>Line items</Label>
+        <div className="space-y-3">
+          <Label>Items</Label>
           {items.map((item, i) => (
             <div key={i} className="grid md:grid-cols-3 gap-3">
               <Input
@@ -100,7 +93,7 @@ function NewInvoiceInner() {
                 }}
               />
               <Input
-                placeholder="Unit price (VERSE)"
+                placeholder="Amount (VERSE)"
                 value={item.unitPrice}
                 onChange={(e) => {
                   const next = [...items];
@@ -112,25 +105,22 @@ function NewInvoiceInner() {
           ))}
           <button
             type="button"
-            className="text-sm text-[#A0A0AB]"
-            onClick={() =>
-              setItems([...items, { description: "", quantity: "1", unitPrice: "" }])
-            }
+            className="text-sm text-[#0C7A4D]"
+            onClick={() => setItems([...items, { description: "", quantity: "1", unitPrice: "" }])}
           >
             Add line
           </button>
         </div>
-        {error && <p className="text-[#C45C5C]">{error}</p>}
+        <div>
+          <Label>Notes</Label>
+          <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+        {error && <p className="text-[#C23B3B]">{error}</p>}
         <div className="flex gap-3">
           <Button type="button" disabled={busy} onClick={(e) => onSubmit(e, true)}>
-            Publish
+            Create invoice
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={busy}
-            onClick={(e) => onSubmit(e, false)}
-          >
+          <Button type="button" variant="ghost" disabled={busy} onClick={(e) => onSubmit(e, false)}>
             Save draft
           </Button>
         </div>

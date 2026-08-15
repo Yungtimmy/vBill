@@ -67,16 +67,24 @@ export async function dashboardStats(merchantId: string) {
   let invoiced = 0n;
   let paid = 0n;
   let pending = 0n;
+  let paidCount = 0;
+  let overdueCount = 0;
   for (const inv of invoices) {
     const amt = BigInt(inv.amountBaseUnits);
     invoiced += amt;
-    if (inv.status === "PAID" || inv.status === "OVERPAID") paid += amt;
+    if (inv.status === "PAID" || inv.status === "OVERPAID") {
+      paid += amt;
+      paidCount += 1;
+    }
     if (inv.status === "PENDING" || inv.status === "PROCESSING" || inv.status === "UNDERPAID") {
       pending += amt;
     }
+    if (inv.status === "EXPIRED") overdueCount += 1;
   }
   return {
     invoiceCount: invoices.length,
+    paidCount,
+    overdueCount,
     invoicedBaseUnits: invoiced.toString(),
     paidBaseUnits: paid.toString(),
     pendingBaseUnits: pending.toString(),

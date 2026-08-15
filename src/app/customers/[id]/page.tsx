@@ -18,7 +18,7 @@ type Customer = {
 };
 
 export default function CustomerDetailPage() {
-  if (!isPrivyConfigured()) return <MissingConfig feature="Customer detail" />;
+  if (!isPrivyConfigured()) return <MissingConfig feature="Client detail" />;
   return <CustomerDetailInner />;
 }
 
@@ -37,26 +37,20 @@ function CustomerDetailInner() {
 
   return (
     <AppShell>
-      {error && <p className="text-[#C45C5C]">{error}</p>}
+      {error && <p className="text-[#C23B3B]">{error}</p>}
       {!customer ? (
-        <p className="text-[#6C6C74]">Loading</p>
+        <p className="text-[#6B6B6B]">Loading</p>
       ) : (
         <>
-          <p className="font-mono text-xs tracking-[0.2em] text-[#6C6C74] uppercase mb-6">
-            Customer
-          </p>
-          <h1 className="font-[family-name:var(--font-syne)] text-4xl tracking-tight mb-2">
-            {customer.name}
-          </h1>
-          <p className="text-[#A0A0AB] mb-10">{customer.email ?? "No email"}</p>
-          <div className="divide-y divide-[#2A2A2F] border-t border-[#2A2A2F]">
+          <Link href="/customers" className="text-sm text-[#6B6B6B]">
+            ← Back to clients
+          </Link>
+          <h1 className="text-2xl font-medium tracking-tight mt-6">{customer.name}</h1>
+          <p className="text-[#6B6B6B] mb-8">{customer.email ?? "No email"}</p>
+          <div className="bg-white border border-[#E6E4DE] rounded-xl divide-y divide-[#E6E4DE]">
             {customer.invoices.map((inv) => (
-              <Link
-                key={inv.id}
-                href={`/invoices/${inv.id}`}
-                className="flex justify-between py-4"
-              >
-                <span>{inv.invoiceNumber}</span>
+              <Link key={inv.id} href={`/invoices/${inv.id}`} className="flex justify-between px-4 py-3 hover:bg-[#F6F5F2]">
+                <span className="font-medium">{inv.invoiceNumber}</span>
                 <StatusPill status={inv.status} />
               </Link>
             ))}

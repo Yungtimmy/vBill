@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-bg: #0f0f11;
-  --color-surface: #1a1a1e;
-  --color-line: #2a2a2f;
-  --color-text-1: #eeeeef;
-  --color-text-2: #a0a0ab;
-  --color-text-3: #6c6c74;
-  --color-accent: #c9a227;
-  --color-accent-2: #6f8f72;
-  --color-danger: #c45c5c;
-  --font-display: var(--font-syne);
+  --color-bg: #f6f5f2;
+  --color-surface: #ffffff;
+  --color-line: #e6e4de;
+  --color-ink: #161616;
+  --color-mute: #6b6b6b;
+  --color-faint: #8a8a8a;
+  --color-accent: #0c7a4d;
+  --color-wait: #c4841d;
+  --color-bad: #c23b3b;
   --font-sans: var(--font-space);
+  --font-display: var(--font-syne);
   --font-mono: var(--font-mono);
 }
 
 html,
 body {
-  background: #0f0f11;
-  color: #eeeeef;
+  background: #f6f5f2;
+  color: #161616;
 }
 
 body {
@@ -27,8 +27,8 @@ body {
 }
 
 ::selection {
-  background: #c9a227;
-  color: #0f0f11;
+  background: #d7efe3;
+  color: #161616;
 }
 
 input,
@@ -39,4 +39,15 @@ select {
 
 a {
   color: inherit;
+}
+
+@media print {
+  nav,
+  aside,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
 }

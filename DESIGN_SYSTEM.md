@@ -2,43 +2,28 @@
 
 Paste this into a new chat to reload taste.
 
-VerseBill is editorial, fiduciary, and dark. Invoices that prove payment on-chain. No generic crypto neon. User writes the copy; the model lays it out.
+VerseBill is Coinbase Business cleanliness crossed with Request Finance verification. Off-white paper, dark type, one green accent. Recurring mark: the On-chain Proof card. No neon, no glass, no three-column feature grids, no token logos as decoration.
 
 ## Tokens
 
 | Slot | Value | Role |
 | --- | --- | --- |
-| bg | `#0F0F11` | Page |
-| surface | `#1A1A1E` | Cards, inputs |
-| surface-border | `#2A2A2F` | Dividers |
-| text-1 | `#EEEEEF` | Headlines |
-| text-2 | `#A0A0AB` | Body |
-| text-3 | `#6C6C74` | Eyebrows |
-| accent-primary | `#C9A227` | CTA hover, 2–3× max |
-| accent-secondary | `#6F8F72` | Verified moment |
-| danger | `#C45C5C` | Failures |
+| bg | `#F6F5F2` | Page |
+| surface | `#FFFFFF` | Cards |
+| line | `#E6E4DE` | Hairlines |
+| ink | `#161616` | Type |
+| mute | `#6B6B6B` | Secondary |
+| accent | `#0C7A4D` | VERSE / paid / verified |
+| wait | `#C4841D` | Pending |
+| bad | `#C23B3B` | Failed / overdue |
 
-Fonts: Syne 800 headlines, Space Grotesk 400 body, JetBrains Mono uppercase eyebrows `tracking-[0.2em]`.
+Type: Space Grotesk for UI. Syne only on the wordmark. Buttons shrink (`scale-95`). No exclamation marks. No emoji except the check used as a status mark.
 
-Section: `py-28 px-6 border-t border-[#2A2A2F]` with `max-w-6xl mx-auto`.
+## Screens
 
-## Laws
+Merchant: Overview, Invoices, Payments, Clients, Settings, Invoice detail (centerpiece).
+Customer: `/pay/[id]` request → confirm → sent. `/verify/[id]` receipt.
 
-- Buttons shrink (`hover:scale-95`), never grow. Hover flips to brass.
-- No gradient text. No image overlays. No emoji. No exclamation marks.
-- No pure black or white.
-- No three-column feature grids.
-- One idea per section.
-- Stroke text: inline `WebkitTextStroke` only.
-- Glow hover: `GlowWord` React component, not CSS classes.
-- Network mode is always labeled Demo/Testnet or Production/Mainnet.
+## Recurring component
 
-## Voice
-
-Banned: seamless, robust, empower, unlock, supercharge, next-generation, cutting-edge, effortlessly, reimagine.
-
-Promise: VerseBill does not ask anyone to blindly trust our database.
-
-## Rejection extras
-
-No scale-grow hovers. No hidden payment destinations. No fake explorer links.
+`OnChainProof`: Polygon, VERSE contract, merchant wallet, exact amount, confirmation, explorer link.

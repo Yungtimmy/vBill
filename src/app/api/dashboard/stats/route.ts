@@ -23,6 +23,8 @@ export async function GET(req: NextRequest) {
         invoicedDisplay: displayAmount(stats.invoicedBaseUnits, decimals),
         paidDisplay: displayAmount(stats.paidBaseUnits, decimals),
         pendingDisplay: displayAmount(stats.pendingBaseUnits, decimals),
+        paidCount: stats.paidCount,
+        overdueCount: stats.overdueCount,
       },
     });
   } catch (err) {
