@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: versebill
+      POSTGRES_PASSWORD: versebill
+      POSTGRES_DB: versebill
+    ports:
+      - "5432:5432"
+    volumes:
+      - versebill_pg:/var/lib/postgresql/data
+
+volumes:
+  versebill_pg:

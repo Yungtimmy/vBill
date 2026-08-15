@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MERCHANT
+  ADMIN
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PROCESSING
+  PAID
+  UNDERPAID
+  OVERPAID
+  EXPIRED
+  CANCELLED
+  FAILED
+}
+
+enum PaymentStatus {
+  PROCESSING
+  CONFIRMED
+  REJECTED
+  FAILED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  privyUserId   String    @unique
+  email         String?
+  walletAddress String?
+  role          Role      @default(MERCHANT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  merchant      Merchant?
+  auditLogs     AuditLog[]
+}
+
+model Merchant {
+  id            String     @id @default(cuid())
+  userId        String     @unique
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName  String     @default("")
+  businessEmail String?
+  businessLogo  String?
+  walletAddress String
+  invoiceSeq    Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  customers     Customer[]
+  invoices      Invoice[]
+
+  @@index([walletAddress])
+}
+
+model Customer {
+  id         String    @id @default(cuid())
+  merchantId String
+  merchant   Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  name       String
+  email      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  invoices   Invoice[]
+
+  @@index([merchantId])
+  @@index([merchantId, email])
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  publicId        String        @unique
+  invoiceNumber   String
+  merchantId      String
+  merchant        Merchant      @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  customerId      String?
+  customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName    String
+  customerEmail   String?
+  currency        String        @default("VERSE")
+  amountBaseUnits String
+  tokenAddress    String
+  chainId         Int
+  merchantWallet  String
+  status          InvoiceStatus @default(DRAFT)
+  dueDate         DateTime?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  items           InvoiceItem[]
+  payments        Payment[]
+  auditLogs       AuditLog[]
+
+  @@unique([merchantId, invoiceNumber])
+  @@index([merchantId, status])
+  @@index([merchantId, createdAt])
+  @@index([status])
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    String
+  unitPrice   String
+  total       String
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  invoiceId       String
+  invoice         Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  txHash          String
+  chainId         Int
+  tokenAddress    String?
+  fromAddress     String?
+  toAddress       String?
+  amountBaseUnits String?
+  blockNumber     String?
+  confirmations   Int           @default(0)
+  status          PaymentStatus @default(PROCESSING)
+  rejectReason    String?
+  verifiedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([chainId, txHash])
+  @@index([invoiceId])
+  @@index([status])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  event     String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([invoiceId])
+  @@index([event, createdAt])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  name      String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+}
+
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+model ProcessedWebhook {
+  id        String   @id @default(cuid())
+  source    String
+  eventId   String
+  createdAt DateTime @default(now())
+
+  @@unique([source, eventId])
+}
