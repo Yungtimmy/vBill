@@ -22,6 +22,8 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "VerseBill",
   description: "Invoices that prove payment on-chain.",

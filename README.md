@@ -42,7 +42,7 @@ VerseBill never holds customer funds and never stores private keys.
 
 **Requires configuration**
 
-- PostgreSQL (`DATABASE_URL`)
+- Supabase Postgres (`DATABASE_URL` + `DIRECT_URL`)
 - Privy app ID + secret
 - Server-side RPC URL
 - Demo-mode test token/chain **or** production mode (`VERSE_NETWORK_MODE=production`)
@@ -66,8 +66,8 @@ Next.js App Router
   ├─ Merchant: /dashboard  /invoices  /customers  /settings
   └─ API: Zod-validated route handlers
 
-PostgreSQL + Prisma
-  invoices, payments, merchants, audit, rate limits
+Supabase Postgres + Prisma
+  User, Merchant, Invoice, Payment, AuditLog
 
 Privy
   identity + embedded/external wallets (client)
@@ -84,7 +84,7 @@ The frontend cannot set `invoice.status = PAID`. Only `PaymentVerificationServic
 
 - Next.js 15 App Router, React 19, TypeScript
 - Tailwind CSS v4
-- Prisma 6 + PostgreSQL
+- Prisma 6 + Supabase PostgreSQL
 - Zod, viem
 - Privy (`@privy-io/react-auth`, `@privy-io/node`)
 - Vitest
@@ -110,11 +110,16 @@ Ethereum VERSE (`0x249ca82617ec3dfb2589c4c17ab7ec9765350a18`) is a different con
 
 ```bash
 cp .env.example .env.local
-# fill in DATABASE_URL, Privy, RPC, and demo or production chain vars
+# fill in DATABASE_URL, Privy, RPC
 
-docker compose up -d        # local Postgres
-npx prisma migrate deploy
+npx prisma db push
 npm run dev
+```
+
+The database is **Supabase PostgreSQL**. If `db.*.supabase.co` has no IPv4 address, use the region pooler (`aws-0-<region>.pooler.supabase.com`) for both `DATABASE_URL` (port 6543) and `DIRECT_URL` (port 5432). Then:
+
+```bash
+npx prisma migrate deploy
 ```
 
 Open http://localhost:3000
@@ -127,10 +132,12 @@ See `.env.example`. Secrets never use the `NEXT_PUBLIC_` prefix.
 
 | Name | Role |
 | --- | --- |
-| `DATABASE_URL` | PostgreSQL |
+| `DATABASE_URL` | Supabase transaction pooler (server) |
+| `DIRECT_URL` | Supabase session/direct URL (migrations) |
+| `POLYGON_RPC_URL` | Server-only Alchemy Polygon RPC |
 | `NEXT_PUBLIC_PRIVY_APP_ID` | Privy app id (public) |
 | `PRIVY_APP_SECRET` | Privy server secret |
-| `RPC_URL` | Server-only Polygon (or demo) RPC |
+| `RPC_URL` | Fallback if `POLYGON_RPC_URL` is unset |
 | `VERSE_NETWORK_MODE` | `demo` or `production` |
 | `CRON_SECRET` | Bearer token for `/api/cron/verify-payments` |
 | `DEMO_*` | Required in demo mode: real testnet chain + real ERC-20 |
@@ -138,13 +145,29 @@ See `.env.example`. Secrets never use the `NEXT_PUBLIC_` prefix.
 
 ## Privy setup
 
-1. Create an app at [dashboard.privy.io](https://dashboard.privy.io)
-2. Enable email login and embedded Ethereum wallets
-3. Allow your app URL
-4. Put the app ID in `NEXT_PUBLIC_PRIVY_APP_ID` and the secret in `PRIVY_APP_SECRET`
-5. Optional: copy the JWT verification key to `PRIVY_VERIFICATION_KEY`
+Code:
 
-Do not claim a recovery method that Privy is not configured to provide.
+1. Create an app at [dashboard.privy.io](https://dashboard.privy.io)
+2. Enable **email** and **wallet** login. Do not enable SMS.
+3. Enable embedded Ethereum wallets (`createOnLogin: users-without-wallets` is already set in code)
+4. Put the app ID in `NEXT_PUBLIC_PRIVY_APP_ID` and the secret in `PRIVY_APP_SECRET`
+5. Copy the JWT verification key to `PRIVY_VERIFICATION_KEY` (PEM, `\n` escaped). This is a public key, not a private key.
+
+The server verifies tokens with Privy’s official `@privy-io/node` `verifyAccessToken`. Identity is `user_id` from that verification only. The API accepts `Authorization: Bearer` and, when you enable HttpOnly cookies, the official `privy-token` cookie.
+
+Dashboard (required before production — from [Privy security checklist](https://docs.privy.io/security/implementation-guide/security-checklist) and [allowed domains](https://docs.privy.io/recipes/dashboard/allowed-domains)):
+
+1. **Allowed origins** — `https://your-domain.com` and `https://www.your-domain.com`. For local work use a **development** app ID with `http://localhost:3000`. Never allow `*.vercel.app`.
+2. **Separate app IDs** for development and production. Do not use the production ID on localhost once cookies are on.
+3. **HttpOnly cookies** — production only, after DNS verification on your real domain. Keep SameSite=Strict unless you have a reason for Lax.
+4. **MFA** — enable passkey or authenticator MFA. Email OTP is a delegated login; account access is wallet access.
+5. **Disable SMS**.
+6. **Session duration** — shorten from the 30-day default if invoices will move real value.
+7. Remove test/preview domains from the production app.
+
+CSP follows [Privy’s official policy](https://docs.privy.io/security/implementation-guide/content-security-policy) plus a per-request nonce so Next.js does not need `unsafe-inline` scripts. `unsafe-eval` is development-only.
+
+Do not claim a recovery method that Privy is not configured to provide. Never paste `PRIVY_APP_SECRET` into chat, git, or tickets. If it leaks, rotate it in the dashboard immediately.
 
 ## Blockchain setup
 
@@ -164,7 +187,7 @@ npm run lint
 
 ## Deployment
 
-Vercel + managed PostgreSQL + a dedicated RPC provider.
+Vercel + Supabase Postgres + a dedicated Polygon RPC.
 
 1. Set all production env vars
 2. Run `prisma migrate deploy`
@@ -173,8 +196,9 @@ Vercel + managed PostgreSQL + a dedicated RPC provider.
 
 ## Security notes
 
-- Bearer-token auth. Identity comes from Privy’s verified access token, never from a client-supplied user id.
-- CSRF tokens are not used (no cookie session). Origin is checked on state-changing routes when `APP_URL` is set.
+- Auth identity comes from Privy’s verified access token, never from a client-supplied user id. Bearer header first; official `privy-token` cookie accepted for HttpOnly mode.
+- CSRF tokens are not used for Bearer APIs. Origin is checked on state-changing routes when `APP_URL` is set. Do not enable SameSite=Lax cookies unless those mutation routes stay origin-checked.
+- CSP, `X-Frame-Options`, HSTS (production), and `nosniff` are set in middleware. No `Access-Control-Allow-Origin: *`.
 - Payment destination / token / chain / amount are stamped from server config at invoice creation and are immutable after publish.
 - Duplicate `txHash` on the same chain cannot pay two invoices.
 - RPC failure never marks an invoice paid.
@@ -193,7 +217,8 @@ Vercel + managed PostgreSQL + a dedicated RPC provider.
 
 - [ ] Official VERSE contract and chain ID re-checked on Bitcoin.com support + PolygonScan
 - [ ] `VERSE_NETWORK_MODE=production`
-- [ ] Privy production app, HTTPS, HSTS
+- [ ] Privy production app: allowed origins, no SMS, MFA, HttpOnly cookies on the real domain, HTTPS, HSTS
+- [ ] Privy app secret rotated if it was ever pasted into chat or committed
 - [ ] Restricted database user, encryption at rest (provider)
 - [ ] RPC credentials server-only
 - [ ] Security tests green

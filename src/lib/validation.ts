@@ -48,7 +48,6 @@ export const createInvoiceSchema = z
   .object({
     customerName: z.string().trim().min(1).max(MAX_NAME),
     customerEmail: emailSchema,
-    customerId: z.string().cuid().optional(),
     items: z.array(invoiceItemSchema).min(1).max(50),
     dueDate: z.string().datetime().optional().or(z.literal("").transform(() => undefined)),
     notes: z.string().trim().max(MAX_NOTE).optional(),
@@ -60,7 +59,6 @@ export const updateDraftInvoiceSchema = z
   .object({
     customerName: z.string().trim().min(1).max(MAX_NAME).optional(),
     customerEmail: emailSchema,
-    customerId: z.string().cuid().nullable().optional(),
     items: z.array(invoiceItemSchema).min(1).max(50).optional(),
     dueDate: z.string().datetime().nullable().optional(),
     notes: z.string().trim().max(MAX_NOTE).nullable().optional(),

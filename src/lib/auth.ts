@@ -15,6 +15,10 @@ export type Session = {
 
 let privy: PrivyClient | null = null;
 
+function normalizePem(raw: string): string {
+  return raw.trim().replace(/^["']|["']$/g, "").replace(/\\n/g, "\n");
+}
+
 function getPrivy(): PrivyClient {
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
   const secret = process.env.PRIVY_APP_SECRET;
@@ -22,12 +26,13 @@ function getPrivy(): PrivyClient {
     throw new ConfigurationError("Privy is not configured.");
   }
   if (!privy) {
+    const verificationKey = process.env.PRIVY_VERIFICATION_KEY
+      ? normalizePem(process.env.PRIVY_VERIFICATION_KEY)
+      : undefined;
     privy = new PrivyClient({
       appId,
       appSecret: secret,
-      ...(process.env.PRIVY_VERIFICATION_KEY
-        ? { jwtVerificationKey: process.env.PRIVY_VERIFICATION_KEY }
-        : {}),
+      ...(verificationKey ? { jwtVerificationKey: verificationKey } : {}),
     });
   }
   return privy;
@@ -37,8 +42,26 @@ export function extractBearer(headers: Headers): string | null {
   const raw = headers.get("authorization");
   if (!raw) return null;
   const match = /^Bearer\s+(.+)$/i.exec(raw.trim());
-  return match?.[1] ?? null;
+  return match?.[1]?.trim() || null;
 }
+
+export function extractCookieToken(headers: Headers): string | null {
+  const cookie = headers.get("cookie");
+  if (!cookie) return null;
+  const match = /(?:^|;\s*)privy-token=([^;]+)/.exec(cookie);
+  if (!match?.[1]) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
+
+export function extractAccessToken(headers: Headers): string | null {
+  return extractBearer(headers) ?? extractCookieToken(headers);
+}
+
+export { normalizePem };
 
 export async function verifyAccessToken(token: string): Promise<{
   userId: string;
@@ -59,7 +82,7 @@ export async function verifyAccessToken(token: string): Promise<{
 }
 
 export async function requireSession(headers: Headers): Promise<Session & { issuedAt?: number }> {
-  const token = extractBearer(headers);
+  const token = extractAccessToken(headers);
   if (!token) {
     throw new UnauthorizedError();
   }

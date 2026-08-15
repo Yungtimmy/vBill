@@ -97,32 +97,44 @@ export async function verifyPayment(
     return stayProcessing(payment, decision.message);
   }
 
-  const updated = await prisma.payment.update({
-    where: { id: payment.id },
-    data: {
-      tokenAddress: cfg.tokenAddress,
-      fromAddress: decision.from,
-      toAddress: decision.to,
-      amountBaseUnits: decision.amount.toString(),
-      blockNumber: decision.blockNumber.toString(),
-      confirmations: decision.confirmations,
-    },
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${payment.invoiceId} FOR UPDATE`;
+    await tx.$queryRaw`SELECT id FROM "Payment" WHERE id = ${payment.id} FOR UPDATE`;
+
+    const locked = await tx.payment.findUniqueOrThrow({ where: { id: payment.id } });
+    if (locked.status === "CONFIRMED") {
+      const invoice = await tx.invoice.findUniqueOrThrow({ where: { id: locked.invoiceId } });
+      return { payment: locked, invoiceStatus: invoice.status };
+    }
+
+    const updated = await tx.payment.update({
+      where: { id: payment.id },
+      data: {
+        tokenAddress: cfg.tokenAddress,
+        fromAddress: decision.from,
+        toAddress: decision.to,
+        amountBaseUnits: decision.amount.toString(),
+        blockNumber: decision.blockNumber.toString(),
+        confirmations: decision.confirmations,
+      },
+    });
+
+    const nextInvoiceStatus = statusFromTotals(
+      await confirmedTotalForInvoice(tx, payment.invoiceId, payment.id, decision.amount),
+      expected,
+    );
+
+    return confirmInTx(tx, updated, nextInvoiceStatus, decision.relation);
   });
-
-  const nextInvoiceStatus = statusFromTotals(
-    await confirmedTotalForInvoice(payment.invoiceId, payment.id, decision.amount),
-    expected,
-  );
-
-  return confirm(updated, nextInvoiceStatus, decision.relation);
 }
 
 async function confirmedTotalForInvoice(
+  db: Pick<typeof prisma, "payment">,
   invoiceId: string,
   currentPaymentId: string,
   currentAmount: bigint,
 ): Promise<bigint> {
-  const others = await prisma.payment.findMany({
+  const others = await db.payment.findMany({
     where: {
       invoiceId,
       status: "CONFIRMED",
@@ -136,28 +148,27 @@ async function confirmedTotalForInvoice(
   return total;
 }
 
-async function confirm(
+async function confirmInTx(
+  tx: Pick<typeof prisma, "payment" | "invoice">,
   payment: Payment,
   invoiceStatus: Invoice["status"],
   relation: "exact" | "under" | "over",
 ): Promise<VerifyOutcome> {
-  const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: payment.invoiceId } });
+  const invoice = await tx.invoice.findUniqueOrThrow({ where: { id: payment.invoiceId } });
   assertTransition(invoice.status, invoiceStatus);
 
-  const [updatedPayment] = await prisma.$transaction([
-    prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        status: "CONFIRMED",
-        verifiedAt: new Date(),
-        rejectReason: null,
-      },
-    }),
-    prisma.invoice.update({
-      where: { id: invoice.id },
-      data: { status: invoiceStatus },
-    }),
-  ]);
+  const updatedPayment = await tx.payment.update({
+    where: { id: payment.id },
+    data: {
+      status: "CONFIRMED",
+      verifiedAt: new Date(),
+      rejectReason: null,
+    },
+  });
+  await tx.invoice.update({
+    where: { id: invoice.id },
+    data: { status: invoiceStatus },
+  });
 
   await writeAudit({
     invoiceId: invoice.id,
@@ -283,6 +294,7 @@ export async function submitTransactionHash(input: {
           invoiceId: input.invoice.id,
           txHash,
           chainId: cfg.chainId,
+          tokenAddress: cfg.tokenAddress,
           fromAddress: input.fromAddress ? normalizeAddress(input.fromAddress) : null,
           status: "PROCESSING",
         },

@@ -20,12 +20,12 @@ export type ChainConfig = {
 const PRODUCTION_TOKEN = "0xc708d6f2153933daa50b2d0758955be0a93a8fec";
 const PRODUCTION_CHAIN_ID = 137;
 
-function required(name: string): string {
-  const v = process.env[name];
-  if (!v || !v.trim()) {
-    throw new ConfigurationError(`${name} is not configured.`);
+function polygonRpcUrl(): string {
+  const url = (process.env.POLYGON_RPC_URL ?? process.env.RPC_URL ?? "").trim();
+  if (!url) {
+    throw new ConfigurationError("POLYGON_RPC_URL is not configured.");
   }
-  return v.trim();
+  return url;
 }
 
 function optional(name: string, fallback: string): string {
@@ -88,13 +88,13 @@ export function getChainConfig(): ChainConfig {
       ),
       gasToken: optional("VERSE_GAS_TOKEN", "POL"),
       requiredConfirmations: intEnv("VERSE_REQUIRED_CONFIRMATIONS", 30),
-      rpcUrl: required("RPC_URL"),
+      rpcUrl: polygonRpcUrl(),
     };
   }
 
   const demoToken = process.env.DEMO_TOKEN_ADDRESS;
   const demoChain = process.env.DEMO_CHAIN_ID;
-  const demoRpc = process.env.DEMO_RPC_URL ?? process.env.RPC_URL;
+  const demoRpc = process.env.DEMO_RPC_URL ?? process.env.POLYGON_RPC_URL ?? process.env.RPC_URL;
   if (!demoToken || !demoChain || !demoRpc) {
     throw new ConfigurationError(
       "Demo mode requires DEMO_CHAIN_ID, DEMO_TOKEN_ADDRESS, and DEMO_RPC_URL (or RPC_URL).",

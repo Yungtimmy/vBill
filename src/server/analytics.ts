@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
 export const PRODUCT_EVENTS = [
@@ -19,14 +18,6 @@ export async function trackEvent(
   payload?: Record<string, unknown>,
 ): Promise<void> {
   const safe = sanitize(payload);
-  try {
-    await prisma.analyticsEvent.create({
-      data: { name, payload: safe ? JSON.parse(JSON.stringify(safe)) : undefined },
-    });
-  } catch {
-    logger.warn("analytics_store_failed", { name });
-  }
-
   const endpoint = process.env.VERSE_ANALYTICS_ENDPOINT;
   const key = process.env.VERSE_ANALYTICS_KEY;
   if (!endpoint || !key) {

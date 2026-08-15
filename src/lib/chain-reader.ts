@@ -6,6 +6,7 @@ import {
   type Transaction,
   type TransactionReceipt,
 } from "viem";
+import { polygon } from "viem/chains";
 import { getChainConfig, type ChainConfig } from "@/lib/chain";
 import { ConfigurationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
@@ -41,9 +42,10 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 export function createViemChainReader(config?: ChainConfig): ChainReader {
   const cfg = config ?? getChainConfig();
   if (!cfg.rpcUrl) {
-    throw new ConfigurationError("RPC_URL is not configured.");
+    throw new ConfigurationError("POLYGON_RPC_URL is not configured.");
   }
   const client = createPublicClient({
+    chain: cfg.chainId === 137 ? polygon : undefined,
     transport: http(cfg.rpcUrl, { timeout: 15_000 }),
   });
 

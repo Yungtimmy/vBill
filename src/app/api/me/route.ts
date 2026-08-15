@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { errorResponse, getRequestId, json } from "@/lib/api";
-import { extractBearer, requireSession, upsertUserFromPrivy, verifyAccessToken } from "@/lib/auth";
+import { extractAccessToken, requireSession, upsertUserFromPrivy, verifyAccessToken } from "@/lib/auth";
 import { bootstrapSchema } from "@/lib/validation";
 import { assertSafeMutation } from "@/lib/guard";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   try {
     assertSafeMutation(req.headers);
     await rateLimit({ key: `me:${clientIp(req.headers)}`, limit: 20, windowMs: 60_000 });
-    const token = extractBearer(req.headers);
+    const token = extractAccessToken(req.headers);
     if (!token) throw new UnauthorizedError();
     const { userId } = await verifyAccessToken(token);
     const body = bootstrapSchema.parse(await req.json().catch(() => ({})));

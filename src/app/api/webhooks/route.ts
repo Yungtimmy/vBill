@@ -34,16 +34,13 @@ export async function POST(req: NextRequest) {
       throw new AppError("INVALID_SIGNATURE", "Invalid request signature.", 401);
     }
 
-    const existing = await prisma.processedWebhook.findUnique({
-      where: { source_eventId: { source: "generic", eventId: check.nonce } },
+    const already = await prisma.auditLog.findFirst({
+      where: { event: "WEBHOOK_ACCEPTED", metadata: { path: ["eventId"], equals: check.nonce } },
     });
-    if (existing) {
+    if (already) {
       return json({ requestId, status: "ignored" });
     }
 
-    await prisma.processedWebhook.create({
-      data: { source: "generic", eventId: check.nonce },
-    });
     await writeAudit({
       event: "WEBHOOK_ACCEPTED",
       metadata: { eventId: check.nonce },

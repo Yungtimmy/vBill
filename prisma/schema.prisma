@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -32,13 +33,13 @@ enum PaymentStatus {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  privyUserId   String    @unique
+  id            String     @id @default(cuid())
+  privyUserId   String     @unique
   email         String?
   walletAddress String?
-  role          Role      @default(MERCHANT)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  role          Role       @default(MERCHANT)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
   merchant      Merchant?
   auditLogs     AuditLog[]
 }
@@ -49,29 +50,13 @@ model Merchant {
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   businessName  String     @default("")
   businessEmail String?
-  businessLogo  String?
   walletAddress String
   invoiceSeq    Int        @default(0)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
-  customers     Customer[]
   invoices      Invoice[]
 
   @@index([walletAddress])
-}
-
-model Customer {
-  id         String    @id @default(cuid())
-  merchantId String
-  merchant   Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  name       String
-  email      String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  invoices   Invoice[]
-
-  @@index([merchantId])
-  @@index([merchantId, email])
 }
 
 model Invoice {
@@ -80,8 +65,6 @@ model Invoice {
   invoiceNumber   String
   merchantId      String
   merchant        Merchant      @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  customerId      String?
-  customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
   customerName    String
   customerEmail   String?
   currency        String        @default("VERSE")
@@ -92,9 +75,9 @@ model Invoice {
   status          InvoiceStatus @default(DRAFT)
   dueDate         DateTime?
   notes           String?
+  lineItems       Json
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  items           InvoiceItem[]
   payments        Payment[]
   auditLogs       AuditLog[]
 
@@ -102,16 +85,6 @@ model Invoice {
   @@index([merchantId, status])
   @@index([merchantId, createdAt])
   @@index([status])
-}
-
-model InvoiceItem {
-  id          String  @id @default(cuid())
-  invoiceId   String
-  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  description String
-  quantity    String
-  unitPrice   String
-  total       String
 }
 
 model Payment {
@@ -150,30 +123,4 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([invoiceId])
   @@index([event, createdAt])
-}
-
-model AnalyticsEvent {
-  id        String   @id @default(cuid())
-  name      String
-  payload   Json?
-  createdAt DateTime @default(now())
-
-  @@index([name, createdAt])
-}
-
-model RateLimitHit {
-  id        String   @id @default(cuid())
-  key       String
-  createdAt DateTime @default(now())
-
-  @@index([key, createdAt])
-}
-
-model ProcessedWebhook {
-  id        String   @id @default(cuid())
-  source    String
-  eventId   String
-  createdAt DateTime @default(now())
-
-  @@unique([source, eventId])
 }
