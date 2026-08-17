@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 cd "$(dirname "$0")/.."
-export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=3072}"
 port="${PORT:-3000}"
 while true; do
   echo "[versebill] starting next on :${port}"
