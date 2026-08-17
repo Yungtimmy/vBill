@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -46,7 +46,29 @@ function InvoiceDetailInner() {
   const params = useParams<{ id: string }>();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    };
+  }, []);
+
+  async function share() {
+    if (!invoice) return;
+    try {
+      await navigator.clipboard.writeText(payUrl);
+      setCopied(true);
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+      copiedTimer.current = setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Couldn't copy automatically - copy this link: " + payUrl);
+    }
+  }
 
   useEffect(() => {
     if (!readyOnServer) return;
@@ -67,11 +89,15 @@ function InvoiceDetailInner() {
 
   async function cancel() {
     if (!invoice) return;
+    setCancelling(true);
     try {
       const d = await api<{ invoice: Invoice }>(`/api/invoices/${invoice.id}/cancel`, { method: "POST" });
       setInvoice(d.invoice);
     } catch (err) {
       setError(formatError(err));
+    } finally {
+      setCancelling(false);
+      setConfirmCancel(false);
     }
   }
 
@@ -131,8 +157,8 @@ function InvoiceDetailInner() {
             )}
             {invoice.status !== "DRAFT" && (
               <>
-                <Button type="button" variant="ghost" onClick={() => navigator.clipboard.writeText(payUrl)}>
-                  Share
+                <Button type="button" variant="ghost" onClick={share}>
+                  {copied ? "✓ Copied!" : "Share"}
                 </Button>
                 <Button type="button" variant="ghost" onClick={() => window.print()}>
                   Download receipt
@@ -140,11 +166,39 @@ function InvoiceDetailInner() {
               </>
             )}
             {invoice.status !== "PAID" && invoice.status !== "CANCELLED" && invoice.status !== "OVERPAID" && (
-              <Button type="button" variant="danger" onClick={cancel}>
+              <Button type="button" variant="danger" onClick={() => setConfirmCancel(true)}>
                 Cancel
               </Button>
             )}
           </div>
+
+          {confirmCancel && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-[#17151F]/40 p-4 no-print"
+              onClick={() => {
+                if (!cancelling) setConfirmCancel(false);
+              }}
+            >
+              <div
+                className="w-full max-w-md bg-white rounded-[22px] p-6 shadow-[0_24px_64px_-16px_rgba(23,21,31,0.35)]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2 className="text-lg font-bold text-[#17151F]">Cancel this invoice?</h2>
+                <p className="mt-2 text-sm text-[#747180]">
+                  Are you sure you want to cancel this invoice? The payment link will stop working and this can&apos;t be
+                  undone.
+                </p>
+                <div className="mt-6 flex gap-3">
+                  <Button type="button" variant="danger" disabled={cancelling} onClick={cancel}>
+                    {cancelling ? "Cancelling…" : "Cancel"}
+                  </Button>
+                  <Button type="button" variant="ghost" disabled={cancelling} onClick={() => setConfirmCancel(false)}>
+                    Keep
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </article>
       )}
     </AppShell>
