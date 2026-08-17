@@ -63,6 +63,10 @@ export function staticSecurityHeaders(isDev: boolean): Array<{ key: string; valu
 export const PRIVY_COOKIE_TOKEN = "privy-token";
 export const PRIVY_COOKIE_SESSION = "privy-session";
 
+export function privyHttpOnlyCookiesEnabled(): boolean {
+  return (process.env.PRIVY_USE_HTTPONLY_COOKIES ?? "").trim().toLowerCase() === "true";
+}
+
 export function isPublicPath(pathname: string): boolean {
   if (pathname === "/" || pathname === "/login" || pathname === "/refresh") return true;
   if (pathname.startsWith("/pay/")) return true;

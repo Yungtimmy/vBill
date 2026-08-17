@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildContentSecurityPolicy, isPublicPath } from "@/lib/security-headers";
+import {
+  buildContentSecurityPolicy,
+  isPublicPath,
+  privyHttpOnlyCookiesEnabled,
+} from "@/lib/security-headers";
 
 describe("Privy CSP", () => {
   const prod = buildContentSecurityPolicy({ nonce: "testnonce", isDev: false });
@@ -34,6 +38,10 @@ describe("Privy CSP", () => {
     expect(prod).not.toContain("connect-src *");
     expect(prod).not.toContain("Access-Control-Allow-Origin");
     expect(prod).not.toContain("polygon-rpc.com");
+  });
+
+  it("does not enable HttpOnly cookie redirects unless configured", () => {
+    expect(privyHttpOnlyCookiesEnabled()).toBe(false);
   });
 
   it("keeps public pay and verify routes outside auth redirects", () => {

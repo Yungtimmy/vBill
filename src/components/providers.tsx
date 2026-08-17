@@ -1,8 +1,8 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
-import { polygon, polygonAmoy } from "viem/chains";
 import { isPrivyConfigured } from "@/lib/privy-public";
+import { polygon, polygonAmoy } from "@/lib/privy-chains";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "";
@@ -17,7 +17,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         loginMethods: ["email", "wallet"],
         appearance: {
           theme: "light",
-          accentColor: "#0C7A4D",
+          accentColor: "#6D35F2",
         },
         embeddedWallets: {
           ethereum: {

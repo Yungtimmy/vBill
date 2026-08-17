@@ -30,6 +30,15 @@ export function parseVerseAmount(human: string, decimals: number): bigint {
   return value;
 }
 
+export function verseLabel(baseUnits?: string | null, decimals = 18): string {
+  if (!baseUnits) return "—";
+  try {
+    return `${formatVerseAmount(parseBaseUnits(baseUnits), decimals)} VERSE`;
+  } catch {
+    return "—";
+  }
+}
+
 export function formatVerseAmount(baseUnits: bigint, decimals: number): string {
   if (baseUnits < 0n) {
     throw new AmountError("Amount cannot be negative.");

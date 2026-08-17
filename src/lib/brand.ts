@@ -1,0 +1,15 @@
+export const BRAND = {
+  purple: "#6D35F2",
+  bright: "#7C3AED",
+  blue: "#168BFF",
+  magenta: "#D500F9",
+  lavender: "#F4F0FF",
+  bg: "#FAF9FF",
+  card: "#FFFFFF",
+  ink: "#17151F",
+  muted: "#747180",
+  border: "#E9E4F2",
+  success: "#16A866",
+  warning: "#F59E0B",
+  error: "#EF4444",
+} as const;

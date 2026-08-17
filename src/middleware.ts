@@ -5,6 +5,7 @@ import {
   buildContentSecurityPolicy,
   isPublicPath,
   staticSecurityHeaders,
+  privyHttpOnlyCookiesEnabled,
 } from "@/lib/security-headers";
 
 export function middleware(request: NextRequest) {
@@ -17,7 +18,11 @@ export function middleware(request: NextRequest) {
     request.nextUrl.searchParams.has("privy_oauth_state") ||
     request.nextUrl.searchParams.has("privy_oauth_provider");
 
-  if (!oauthInProgress && !isPublicPath(request.nextUrl.pathname)) {
+  if (
+    privyHttpOnlyCookiesEnabled() &&
+    !oauthInProgress &&
+    !isPublicPath(request.nextUrl.pathname)
+  ) {
     const access = request.cookies.get(PRIVY_COOKIE_TOKEN);
     const session = request.cookies.get(PRIVY_COOKIE_SESSION);
     if (!access && session) {

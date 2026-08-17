@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
         pendingDisplay: displayAmount(stats.pendingBaseUnits, decimals),
         paidCount: stats.paidCount,
         overdueCount: stats.overdueCount,
+        pendingInvoiceCount: stats.pendingInvoiceCount,
       },
     });
   } catch (err) {

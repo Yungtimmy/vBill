@@ -69,6 +69,7 @@ export async function dashboardStats(merchantId: string) {
   let pending = 0n;
   let paidCount = 0;
   let overdueCount = 0;
+  let pendingInvoiceCount = 0;
   for (const inv of invoices) {
     const amt = BigInt(inv.amountBaseUnits);
     invoiced += amt;
@@ -78,6 +79,7 @@ export async function dashboardStats(merchantId: string) {
     }
     if (inv.status === "PENDING" || inv.status === "PROCESSING" || inv.status === "UNDERPAID") {
       pending += amt;
+      pendingInvoiceCount += 1;
     }
     if (inv.status === "EXPIRED") overdueCount += 1;
   }
@@ -85,6 +87,7 @@ export async function dashboardStats(merchantId: string) {
     invoiceCount: invoices.length,
     paidCount,
     overdueCount,
+    pendingInvoiceCount,
     invoicedBaseUnits: invoiced.toString(),
     paidBaseUnits: paid.toString(),
     pendingBaseUnits: pending.toString(),

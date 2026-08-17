@@ -1,24 +1,16 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Space_Grotesk, Syne } from "next/font/google";
-import { Providers } from "@/components/providers";
-import { NetworkBanner } from "@/components/network-banner";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const syne = Syne({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["800"],
-  variable: "--font-syne",
-});
-
-const space = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-space",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
 const mono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400"],
+  weight: ["400", "500"],
   variable: "--font-mono",
 });
 
@@ -28,16 +20,14 @@ export const metadata: Metadata = {
   title: "VerseBill",
   description: "Invoices that prove payment on-chain.",
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+  icons: { icon: "/image.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${syne.variable} ${space.variable} ${mono.variable} antialiased`}>
-        <Providers>
-          <NetworkBanner />
-          {children}
-        </Providers>
+      <body className={`${inter.variable} ${mono.variable} antialiased`}>
+        {children}
       </body>
     </html>
   );
