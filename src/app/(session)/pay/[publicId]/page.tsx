@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
@@ -43,6 +43,7 @@ export default function PayPage() {
   const [error, setError] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("ready");
   const [sentHash, setSentHash] = useState<string | null>(null);
+  const polling = useRef(false);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/pay/${params.publicId}`);
@@ -64,6 +65,61 @@ export default function PayPage() {
   useEffect(() => {
     load().catch((err) => setError(err instanceof Error ? err.message : "Failed to load."));
   }, [load]);
+
+  // Keep verifying until the payment reaches a terminal state, with
+  // backoff, instead of giving up after a fixed window.
+  const pollForConfirmation = useCallback(
+    async (paymentId: string) => {
+      if (polling.current) return;
+      polling.current = true;
+      try {
+        let waitMs = 6_000;
+        for (;;) {
+          await new Promise((r) => setTimeout(r, waitMs));
+          try {
+            const res = await fetch(`/api/payments/${paymentId}/verify`, { method: "POST" });
+            const json = await res.json();
+            if (json.invoiceStatus === "PAID" || json.invoiceStatus === "OVERPAID") {
+              setPhase("confirmed");
+              await load();
+              return;
+            }
+            if (json.invoiceStatus === "UNDERPAID") {
+              setPhase("ready");
+              setError("Amount received is less than the invoice.");
+              await load();
+              return;
+            }
+            if (json.invoiceStatus === "CANCELLED") {
+              setPhase("failed");
+              setError("This invoice has been cancelled by the merchant.");
+              return;
+            }
+            if (json.payment?.status === "REJECTED" || json.payment?.status === "FAILED") {
+              setPhase("failed");
+              setError(json.reason || "Payment failed.");
+              return;
+            }
+          } catch {
+            // transient network/RPC error - keep waiting
+          }
+          waitMs = Math.min(waitMs * 1.5, 30_000);
+        }
+      } finally {
+        polling.current = false;
+      }
+    },
+    [load],
+  );
+
+  // If the user lands on (or returns to) the pending state with a
+  // PROCESSING payment, resume verification instead of waiting forever.
+  useEffect(() => {
+    if (phase !== "pending" || !data) return;
+    const payment = data.invoice.payments.find((p) => p.status === "PROCESSING");
+    if (!payment) return;
+    pollForConfirmation(payment.id);
+  }, [phase, data, pollForConfirmation]);
 
   if (error && !data) {
     return (
@@ -179,7 +235,7 @@ export default function PayPage() {
           )}
           <p className="mt-6 text-sm font-medium text-[#B45309]">Waiting for confirmation</p>
           <p className="mt-3 text-sm text-[#747180]">
-            We&apos;ll automatically update this payment when verification is complete.
+            We keep checking automatically - this page will update itself once Polygon confirms the transaction.
           </p>
         </PayCard>
       </PublicFrame>
@@ -239,6 +295,7 @@ export default function PayPage() {
               setError={setError}
               setSentHash={setSentHash}
               onReload={load}
+              onVerify={pollForConfirmation}
               label="Confirm & Pay"
             />
           )}
@@ -271,6 +328,7 @@ export default function PayPage() {
             setError={setError}
             setSentHash={setSentHash}
             onReload={load}
+            onVerify={pollForConfirmation}
             label={`Pay ${data.invoice.amountDisplay} VERSE`}
             preview
           />
@@ -294,6 +352,7 @@ function PayActions({
   setError,
   setSentHash,
   onReload,
+  onVerify,
   label,
   preview,
 }: {
@@ -304,6 +363,7 @@ function PayActions({
   setError: (n: string | null) => void;
   setSentHash: (h: string | null) => void;
   onReload: () => Promise<unknown>;
+  onVerify: (paymentId: string) => Promise<void>;
   label: string;
   preview?: boolean;
 }) {
@@ -373,29 +433,7 @@ function PayActions({
         await onReload();
         return;
       }
-      for (let i = 0; i < 20; i += 1) {
-        await new Promise((r) => setTimeout(r, 3000));
-        const res = await fetch(`/api/payments/${result.payment.id}/verify`, { method: "POST" });
-        const json = await res.json();
-        if (json.invoiceStatus === "PAID" || json.invoiceStatus === "OVERPAID") {
-          setPhase("confirmed");
-          await onReload();
-          return;
-        }
-        if (json.invoiceStatus === "UNDERPAID") {
-          setPhase("ready");
-          setError("Amount received is less than the invoice.");
-          await onReload();
-          return;
-        }
-        if (json.payment?.status === "REJECTED" || json.payment?.status === "FAILED") {
-          setPhase("failed");
-          setError(json.reason || "Payment failed.");
-          return;
-        }
-      }
-      setPhase("pending");
-      await onReload();
+      await onVerify(result.payment.id);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Wallet error.";
       setPhase(preview ? "ready" : "confirm");

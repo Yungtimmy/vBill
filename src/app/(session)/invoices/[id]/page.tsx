@@ -28,6 +28,7 @@ type Invoice = {
   createdAt?: string;
   items: { description: string; quantity: string; unitPrice: string }[];
   payments?: {
+    id: string;
     status: string;
     txHash: string;
     fromAddress?: string | null;
@@ -50,6 +51,7 @@ function InvoiceDetailInner() {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [checking, setChecking] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
@@ -91,6 +93,22 @@ function InvoiceDetailInner() {
     }
   }
 
+  async function recheckPayment() {
+    if (!invoice) return;
+    setChecking(true);
+    try {
+      for (const p of invoice.payments?.filter((pp) => pp.status === "PROCESSING") ?? []) {
+        await api(`/api/payments/${p.id}/verify`, { method: "POST" });
+      }
+      const d = await api<{ invoice: Invoice }>(`/api/invoices/${invoice.id}`);
+      setInvoice(d.invoice);
+    } catch (err) {
+      setError(formatError(err));
+    } finally {
+      setChecking(false);
+    }
+  }
+
   async function cancel() {
     if (!invoice) return;
     setCancelling(true);
@@ -106,6 +124,7 @@ function InvoiceDetailInner() {
   }
 
   const paid = invoice?.payments?.find((p) => p.status === "CONFIRMED");
+  const processing = invoice?.payments?.some((p) => p.status === "PROCESSING");
   const verified = invoice?.status === "PAID" || invoice?.status === "OVERPAID";
   const payUrl = invoice ? `${origin}/pay/${invoice.publicId}` : "";
   const explorer = paid ? `https://polygonscan.com/tx/${paid.txHash}` : null;
@@ -193,6 +212,17 @@ function InvoiceDetailInner() {
                   Download receipt
                 </Button>
               </>
+            )}
+            {processing && invoice.status !== "PAID" && invoice.status !== "OVERPAID" && (
+              <Button type="button" variant="ghost" onClick={recheckPayment} disabled={checking}>
+                {checking ? (
+                  <>
+                    <Spinner className="mr-2" /> Checking…
+                  </>
+                ) : (
+                  "Check payment"
+                )}
+              </Button>
             )}
             {invoice.status !== "PAID" && invoice.status !== "CANCELLED" && invoice.status !== "OVERPAID" && (
               <Button type="button" variant="danger" onClick={() => setConfirmCancel(true)}>
