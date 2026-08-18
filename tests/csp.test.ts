@@ -1,9 +1,11 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   buildContentSecurityPolicy,
   isPublicPath,
   privyHttpOnlyCookiesEnabled,
 } from "@/lib/security-headers";
+import { THEME_BOOT_SCRIPT, THEME_BOOT_SCRIPT_HASH } from "@/lib/theme-boot";
 
 describe("Privy CSP", () => {
   const prod = buildContentSecurityPolicy({ nonce: "testnonce", isDev: false });
@@ -27,6 +29,13 @@ describe("Privy CSP", () => {
     expect(prod).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     expect(prod).not.toContain("unsafe-eval");
     expect(prod).not.toContain("strict-dynamic");
+  });
+
+  it("allowlists the exact theme boot script hash in the CSP", () => {
+    const actual =
+      "sha256-" + createHash("sha256").update(THEME_BOOT_SCRIPT).digest("base64");
+    expect(actual).toBe(THEME_BOOT_SCRIPT_HASH);
+    expect(prod).toContain(`'${THEME_BOOT_SCRIPT_HASH}'`);
   });
 
   it("allows unsafe-eval only in development", () => {

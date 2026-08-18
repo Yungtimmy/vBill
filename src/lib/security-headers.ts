@@ -1,3 +1,5 @@
+import { THEME_BOOT_SCRIPT_HASH } from "./theme-boot";
+
 export type CspOptions = {
   nonce: string;
   isDev: boolean;
@@ -15,6 +17,9 @@ export function buildContentSecurityPolicy({ nonce, isDev }: CspOptions): string
   const scriptSrc = [
     "'self'",
     `'nonce-${nonce}'`,
+    // Allow the pre-paint theme boot script (see theme-boot.ts). Its hash is
+    // enforced by tests/csp.test.ts so it can't silently drift.
+    `'${THEME_BOOT_SCRIPT_HASH}'`,
     "https://challenges.cloudflare.com",
     ...(isDev ? ["'unsafe-eval'"] : []),
   ].join(" ");
