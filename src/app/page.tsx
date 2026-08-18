@@ -1,35 +1,39 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#F4F0FF_0%,#FAF9FF_50%,#FFFFFF_100%)] text-[#17151F]">
+    <div className="min-h-screen bg-page-gradient text-ink">
       <header className="px-5 py-5 flex items-center justify-between max-w-[1200px] mx-auto">
         <BrandLogo href="/" size={36} />
-        <Link href="/login" className="text-sm font-medium text-[#747180] hover:text-[#17151F]">
-          Sign in
-        </Link>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link href="/login" className="text-sm font-medium text-muted hover:text-ink">
+            Sign in
+          </Link>
+        </div>
       </header>
 
       <section className="px-5 pt-10 pb-20 max-w-[1200px] mx-auto">
-        <p className="text-sm font-medium text-[#6D35F2]">Invoices that prove payment</p>
+        <p className="text-sm font-medium text-purple">Invoices that prove payment</p>
         <h1 className="mt-3 text-[32px] md:text-5xl font-bold tracking-tight max-w-2xl leading-[1.15]">
           Get paid in VERSE. Verify it on-chain.
         </h1>
-        <p className="text-[#747180] text-base md:text-lg mt-5 max-w-xl leading-relaxed">
+        <p className="text-muted text-base md:text-lg mt-5 max-w-xl leading-relaxed">
           Create an invoice, share a link, and accept VERSE on Polygon. VerseBill checks the
           blockchain before anything is marked paid.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
           <Link
             href="/login"
-            className="inline-flex justify-center px-5 py-3.5 bg-[#6D35F2] text-white text-sm font-semibold rounded-2xl hover:scale-95 transition-transform"
+            className="inline-flex justify-center px-5 py-3.5 bg-purple text-white text-sm font-semibold rounded-2xl hover:scale-95 transition-transform"
           >
             Create an invoice
           </Link>
           <Link
             href="/login"
-            className="inline-flex justify-center px-5 py-3.5 bg-white border border-[#E9E4F2] text-sm font-semibold rounded-2xl hover:scale-95 transition-transform"
+            className="inline-flex justify-center px-5 py-3.5 bg-card border border-line text-sm font-semibold rounded-2xl hover:scale-95 transition-transform"
           >
             Open dashboard
           </Link>
@@ -37,19 +41,19 @@ export default function HomePage() {
       </section>
 
       <section className="px-5 pb-24 max-w-[1200px] mx-auto">
-        <p className="text-sm font-medium text-[#747180] mb-6">How it works</p>
+        <p className="text-sm font-medium text-muted mb-6">How it works</p>
         <ol className="max-w-xl space-y-6">
           <li>
             <p className="font-semibold">1. Send an invoice</p>
-            <p className="text-[#747180] mt-1 text-sm">Customer, amount, due date. Share the payment link.</p>
+            <p className="text-muted mt-1 text-sm">Customer, amount, due date. Share the payment link.</p>
           </li>
           <li>
             <p className="font-semibold">2. Customer pays VERSE</p>
-            <p className="text-[#747180] mt-1 text-sm">The recipient address stays visible before they sign.</p>
+            <p className="text-muted mt-1 text-sm">The recipient address stays visible before they sign.</p>
           </li>
           <li>
             <p className="font-semibold">3. Payment verified on-chain</p>
-            <p className="text-[#747180] mt-1 text-sm">
+            <p className="text-muted mt-1 text-sm">
               Network, token, recipient, amount, and confirmation are checked independently.
             </p>
           </li>

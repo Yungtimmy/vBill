@@ -79,7 +79,7 @@ function NewInvoiceInner() {
               <Label>Invoice items</Label>
               <div className="space-y-3">
                 {items.map((item, i) => (
-                  <div key={i} className="rounded-2xl border border-[#E9E4F2] p-3 space-y-2">
+                  <div key={i} className="rounded-2xl border border-line p-3 space-y-2">
                     <Input
                       placeholder="Item"
                       value={item.description}
@@ -110,7 +110,7 @@ function NewInvoiceInner() {
                             setItems(next);
                           }}
                         />
-                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#747180] pointer-events-none select-none">
+                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted pointer-events-none select-none">
                           VERSE
                         </span>
                       </div>
@@ -119,7 +119,7 @@ function NewInvoiceInner() {
                 ))}
                 <button
                   type="button"
-                  className="text-sm font-medium text-[#6D35F2]"
+                  className="text-sm font-medium text-purple"
                   onClick={() => setItems([...items, { description: "", quantity: "", unitPrice: "" }])}
                 >
                   + Add item
@@ -134,11 +134,11 @@ function NewInvoiceInner() {
               <Label>Notes</Label>
               <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes" />
             </div>
-            <div className="flex items-baseline justify-between border-t border-[#E9E4F2] pt-5">
-              <span className="text-sm font-medium text-[#747180]">Total</span>
+            <div className="flex items-baseline justify-between border-t border-line pt-5">
+              <span className="text-sm font-medium text-muted">Total</span>
               <span className="text-2xl font-bold">{total > 0 ? `${Number(total.toFixed(8))} VERSE` : "—"}</span>
             </div>
-            {error && <p className="text-[#EF4444]">{error}</p>}
+            {error && <p className="text-error">{error}</p>}
             <div className="flex flex-col sm:flex-row gap-3">
               <Button type="button" disabled={busy} onClick={(e) => onSubmit(e, true)} className="flex-1">
                 Create invoice

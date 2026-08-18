@@ -80,8 +80,8 @@ function InvoicesInner() {
               onClick={() => setStatus(f.id)}
               className={`text-sm px-3 py-1.5 rounded-full ${
                 status === f.id
-                  ? "bg-[#6D35F2] text-white font-semibold"
-                  : "bg-white border border-[#E9E4F2] text-[#747180]"
+                  ? "bg-purple text-white font-semibold"
+                  : "bg-card border border-line text-muted"
               }`}
             >
               {f.label}
@@ -92,11 +92,11 @@ function InvoicesInner() {
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" aria-label="Search invoices" />
         </div>
       </div>
-      {error && <p className="text-[#EF4444] mb-4">{error}</p>}
+      {error && <p className="text-error mb-4">{error}</p>}
       {loading && !error ? (
         <>
           <Card className="hidden md:block p-0 overflow-hidden">
-            <div className="divide-y divide-[#E9E4F2]">
+            <div className="divide-y divide-line">
               {[0, 1, 2, 3].map((i) => (
                 <div key={i} className="grid grid-cols-[140px_1fr_160px_140px_auto] gap-3 items-center px-5 py-4">
                   <Skeleton className="h-4 w-24" />
@@ -122,28 +122,28 @@ function InvoicesInner() {
           </div>
         </>
       ) : visible.length === 0 ? (
-        <p className="text-[#747180]">No invoices in this view.</p>
+        <p className="text-muted">No invoices in this view.</p>
       ) : (
         <>
           <Card className="hidden md:block p-0 overflow-hidden">
-            <div className="grid grid-cols-[140px_1fr_160px_140px_auto] gap-3 px-5 py-3 text-xs font-semibold text-[#747180]">
+            <div className="grid grid-cols-[140px_1fr_160px_140px_auto] gap-3 px-5 py-3 text-xs font-semibold text-muted">
               <span>Invoice</span>
               <span>Customer</span>
               <span>Amount</span>
               <span>Date</span>
               <span>Status</span>
             </div>
-            <div className="divide-y divide-[#E9E4F2]">
+            <div className="divide-y divide-line">
               {visible.map((inv) => (
                 <Link
                   key={inv.id}
                   href={`/invoices/${inv.id}`}
-                  className="grid grid-cols-[140px_1fr_160px_140px_auto] gap-3 items-center px-5 py-3.5 hover:bg-[#FAF9FF]"
+                  className="grid grid-cols-[140px_1fr_160px_140px_auto] gap-3 items-center px-5 py-3.5 hover:bg-lavender"
                 >
                   <span className="font-semibold">{inv.invoiceNumber}</span>
-                  <span className="text-[#747180] truncate">{inv.customerName}</span>
+                  <span className="text-muted truncate">{inv.customerName}</span>
                   <span className="font-semibold">{verseLabel(inv.amountBaseUnits)}</span>
-                  <span className="text-sm text-[#747180]">{formatDate(inv.createdAt)}</span>
+                  <span className="text-sm text-muted">{formatDate(inv.createdAt)}</span>
                   <StatusPill status={inv.status} />
                 </Link>
               ))}
@@ -156,12 +156,12 @@ function InvoicesInner() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-semibold">{inv.invoiceNumber}</p>
-                      <p className="text-sm text-[#747180] mt-1 break-words">{inv.customerName}</p>
+                      <p className="text-sm text-muted mt-1 break-words">{inv.customerName}</p>
                     </div>
                     <StatusPill status={inv.status} />
                   </div>
                   <p className="font-bold mt-3">{verseLabel(inv.amountBaseUnits)}</p>
-                  <p className="text-xs text-[#747180] mt-1">{formatDate(inv.createdAt)}</p>
+                  <p className="text-xs text-muted mt-1">{formatDate(inv.createdAt)}</p>
                 </Card>
               </Link>
             ))}

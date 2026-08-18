@@ -124,7 +124,7 @@ export default function PayPage() {
   if (error && !data) {
     return (
       <PublicFrame>
-        <p className="max-w-md mx-auto text-[#EF4444]">{error}</p>
+        <p className="max-w-md mx-auto text-error">{error}</p>
       </PublicFrame>
     );
   }
@@ -151,7 +151,7 @@ export default function PayPage() {
       <PublicFrame>
         <PayCard className="max-w-md mx-auto text-center">
           <div
-            className="mx-auto h-16 w-16 rounded-full bg-[#E8F8F0] text-[#16A866] text-3xl font-bold flex items-center justify-center"
+            className="mx-auto h-16 w-16 rounded-full bg-success-soft text-success text-3xl font-bold flex items-center justify-center"
             style={{ boxShadow: "0 0 0 8px rgba(109,53,242,0.06), 0 0 40px rgba(22,139,255,0.18)" }}
           >
             ✓
@@ -159,7 +159,7 @@ export default function PayPage() {
           <p className="mt-6 text-xl font-semibold">Payment verified</p>
           <p className="mt-4 text-[32px] font-bold tracking-tight">{data.invoice.amountDisplay} VERSE</p>
           <p className="mt-2 font-medium">{data.invoice.businessName}</p>
-          <p className="mt-4 text-sm text-[#747180]">
+          <p className="mt-4 text-sm text-muted">
             Payment successfully verified on the Polygon network.
           </p>
           <div className="mt-6 text-left space-y-2">
@@ -199,10 +199,10 @@ export default function PayPage() {
       <PublicFrame>
         <PayCard className="max-w-md mx-auto text-center">
           <p className="text-xl font-semibold">Payment could not be verified</p>
-          <p className="mt-3 text-sm text-[#747180]">
+          <p className="mt-3 text-sm text-muted">
             Your funds have not been marked as received by the merchant.
           </p>
-          <p className="mt-6 text-sm text-[#747180]">Reason</p>
+          <p className="mt-6 text-sm text-muted">Reason</p>
           <p className="mt-1 font-medium">{error || "Transaction failed / verification failed."}</p>
           <div className="mt-8 flex flex-col gap-3">
             <Button className="w-full" onClick={() => setPhase("ready")}>
@@ -224,17 +224,17 @@ export default function PayPage() {
       <PublicFrame>
         <PayCard className="max-w-md mx-auto text-center">
           <p className="text-xl font-semibold">Payment submitted</p>
-          <p className="mt-3 text-sm text-[#747180]">
+          <p className="mt-3 text-sm text-muted">
             We&apos;re waiting for confirmation from the Polygon network.
           </p>
           {hash && (
             <>
-              <p className="mt-6 text-sm text-[#747180]">Transaction</p>
+              <p className="mt-6 text-sm text-muted">Transaction</p>
               <p className="font-mono text-sm mt-1">{shortenHash(hash)}</p>
             </>
           )}
-          <p className="mt-6 text-sm font-medium text-[#B45309]">Waiting for confirmation</p>
-          <p className="mt-3 text-sm text-[#747180]">
+          <p className="mt-6 text-sm font-medium text-warning">Waiting for confirmation</p>
+          <p className="mt-3 text-sm text-muted">
             We keep checking automatically - this page will update itself once Polygon confirms the transaction.
           </p>
         </PayCard>
@@ -246,13 +246,13 @@ export default function PayPage() {
     return (
       <PublicFrame>
         <PayCard className="max-w-md mx-auto text-center">
-          <div className="mx-auto h-20 w-20 rounded-full bg-[#F4F0FF] flex items-center justify-center">
-            <LoaderCircle className="animate-spin text-[#6D35F2]" size={36} />
+          <div className="mx-auto h-20 w-20 rounded-full bg-lavender flex items-center justify-center">
+            <LoaderCircle className="animate-spin text-purple" size={36} />
           </div>
           <p className="mt-6 text-xl font-semibold">
             {phase === "wallet" ? "Confirm in your wallet" : "Verifying payment..."}
           </p>
-          <p className="mt-3 text-sm text-[#747180]">
+          <p className="mt-3 text-sm text-muted">
             {phase === "wallet"
               ? "Approve the VERSE transfer in your wallet."
               : "We're confirming your transaction on Polygon."}
@@ -266,19 +266,19 @@ export default function PayPage() {
     return (
       <PublicFrame>
         <PayCard className="max-w-md mx-auto">
-          <p className="text-center text-sm font-medium text-[#747180]">Confirm payment</p>
-          <p className="text-center mt-6 text-sm text-[#747180]">You&apos;re paying</p>
+          <p className="text-center text-sm font-medium text-muted">Confirm payment</p>
+          <p className="text-center mt-6 text-sm text-muted">You&apos;re paying</p>
           <p className="text-center mt-2 text-[32px] font-bold tracking-tight">
             {data.invoice.amountDisplay} VERSE
           </p>
           <div className="mt-8 space-y-4 text-sm">
             <div>
-              <p className="text-[#747180]">To</p>
+              <p className="text-muted">To</p>
               <p className="mt-1 font-semibold">{data.invoice.businessName}</p>
               <p className="font-mono text-sm break-all mt-1">{data.invoice.merchantWallet}</p>
             </div>
             <div>
-              <p className="text-[#747180]">Network</p>
+              <p className="text-muted">Network</p>
               <p className="mt-1 font-semibold">Polygon</p>
             </div>
           </div>
@@ -299,7 +299,7 @@ export default function PayPage() {
               label="Confirm & Pay"
             />
           )}
-          {error && <p className="text-[#EF4444] mt-4">{error}</p>}
+          {error && <p className="text-error mt-4">{error}</p>}
         </PayCard>
       </PublicFrame>
     );
@@ -308,15 +308,15 @@ export default function PayPage() {
   return (
     <PublicFrame>
       <PayCard className="max-w-md mx-auto text-center">
-        <p className="text-sm font-medium text-[#747180]">Payment request</p>
-        <p className="mt-5 text-xs font-semibold tracking-wide text-[#747180] uppercase">
+        <p className="text-sm font-medium text-muted">Payment request</p>
+        <p className="mt-5 text-xs font-semibold tracking-wide text-muted uppercase">
           {data.invoice.businessName}
         </p>
         <p className="mt-3 text-[32px] font-bold tracking-tight">{data.invoice.amountDisplay} VERSE</p>
-        <p className="mt-3 text-sm text-[#747180]">Polygon</p>
-        <p className="mt-4 text-sm font-medium text-[#16A866]">Merchant verified ✓</p>
+        <p className="mt-3 text-sm text-muted">Polygon</p>
+        <p className="mt-4 text-sm font-medium text-success">Merchant verified ✓</p>
         <div className="mt-6 text-left text-sm">
-          <p className="text-[#747180]">Paying to</p>
+          <p className="text-muted">Paying to</p>
           <p className="mt-1 font-mono text-sm break-all">{data.invoice.merchantWallet}</p>
         </div>
         {isPrivyConfigured() ? (
@@ -333,10 +333,10 @@ export default function PayPage() {
             preview
           />
         ) : (
-          <p className="text-[#EF4444] mt-6">Wallet payment is unavailable until Privy is configured.</p>
+          <p className="text-error mt-6">Wallet payment is unavailable until Privy is configured.</p>
         )}
-        {error && <p className="text-[#EF4444] mt-4">{error}</p>}
-        <Link href={`/verify/${data.invoice.publicId}`} className="block text-sm text-[#747180] mt-6">
+        {error && <p className="text-error mt-4">{error}</p>}
+        <Link href={`/verify/${data.invoice.publicId}`} className="block text-sm text-muted mt-6">
           Payment receipt
         </Link>
       </PayCard>

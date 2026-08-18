@@ -38,9 +38,9 @@ export function OnChainProof({
 
   if (!verified) {
     return (
-      <div className="bg-white border border-[#E9E4F2] rounded-[22px] p-5">
-        <p className="text-sm font-semibold text-[#747180]">On-chain proof</p>
-        <p className="mt-2 text-sm text-[#747180]">No confirmed payment yet.</p>
+      <div className="bg-card border border-line rounded-[22px] p-5">
+        <p className="text-sm font-semibold text-muted">On-chain proof</p>
+        <p className="mt-2 text-sm text-muted">No confirmed payment yet.</p>
       </div>
     );
   }
@@ -53,55 +53,55 @@ export function OnChainProof({
         boxShadow: "0 16px 40px -24px rgba(109,53,242,0.45)",
       }}
     >
-      <div className="rounded-[21px] bg-white p-5 sm:p-6">
+      <div className="rounded-[21px] bg-card p-5 sm:p-6">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="text-[#16A866] shrink-0 mt-0.5" size={22} />
+          <CheckCircle2 className="text-success shrink-0 mt-0.5" size={22} />
           <div>
             <p className="text-lg font-semibold tracking-tight">Payment verified on-chain</p>
-            <p className="mt-1 text-sm text-[#747180]">
+            <p className="mt-1 text-sm text-muted">
               This payment has been verified on the Polygon network.
             </p>
           </div>
         </div>
         <ul className="mt-5 space-y-2 text-sm">
           {CHECKS.map((label, i) => (
-            <li key={label} className={i < shown ? "text-[#17151F]" : "text-transparent"}>
-              <span className="text-[#16A866]">✓</span> {label}
+            <li key={label} className={i < shown ? "text-ink" : "text-transparent"}>
+              <span className="text-success">✓</span> {label}
             </li>
           ))}
         </ul>
         {txHash && (
           <div className="mt-5">
-            <p className="text-xs text-[#747180]">Transaction</p>
+            <p className="text-xs text-muted">Transaction</p>
             <p className="font-mono text-sm mt-1">{shortenHash(txHash)}</p>
           </div>
         )}
         {explorerUrl && (
-          <a href={explorerUrl} target="_blank" rel="noreferrer" className="inline-flex mt-3 text-sm font-medium text-[#6D35F2]">
+          <a href={explorerUrl} target="_blank" rel="noreferrer" className="inline-flex mt-3 text-sm font-medium text-purple">
             View on PolygonScan →
           </a>
         )}
         <details className="mt-4 text-sm">
-          <summary className="cursor-pointer text-[#747180]">Technical details</summary>
-          <dl className="mt-3 space-y-1 text-[#747180]">
+          <summary className="cursor-pointer text-muted">Technical details</summary>
+          <dl className="mt-3 space-y-1 text-muted">
             <div className="flex justify-between gap-4">
               <dt>Network</dt>
-              <dd className="text-[#17151F]">Polygon</dd>
+              <dd className="text-ink">Polygon</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt>Token</dt>
-              <dd className="text-[#17151F]">VERSE</dd>
+              <dd className="text-ink">VERSE</dd>
             </div>
             {tokenAddress && (
               <div className="flex justify-between gap-4">
                 <dt>Contract</dt>
-                <dd className="font-mono text-[#17151F]">{shortenAddress(tokenAddress)}</dd>
+                <dd className="font-mono text-ink">{shortenAddress(tokenAddress)}</dd>
               </div>
             )}
             {txHash && (
               <div className="flex justify-between gap-4">
                 <dt>Transaction</dt>
-                <dd className="font-mono text-[#17151F]">{shortenHash(txHash)}</dd>
+                <dd className="font-mono text-ink">{shortenHash(txHash)}</dd>
               </div>
             )}
           </dl>

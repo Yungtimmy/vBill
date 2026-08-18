@@ -44,7 +44,7 @@ function PaymentsInner() {
   return (
     <AppShell>
       <h1 className="text-[28px] font-bold tracking-tight mb-6">Payments</h1>
-      {error && <p className="text-[#EF4444] mb-4">{error}</p>}
+      {error && <p className="text-error mb-4">{error}</p>}
       {loading && !error ? (
         <div className="space-y-3">
           {[0, 1, 2].map((i) => (
@@ -61,7 +61,7 @@ function PaymentsInner() {
           ))}
         </div>
       ) : rows.length === 0 ? (
-        <p className="text-[#747180]">No verified payments yet.</p>
+        <p className="text-muted">No verified payments yet.</p>
       ) : (
         <div className="space-y-3">
           {rows.map((inv) => (
@@ -69,13 +69,13 @@ function PaymentsInner() {
               <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold">{inv.invoiceNumber}</p>
-                  <p className="text-sm text-[#747180] break-words">{inv.customerName}</p>
+                  <p className="text-sm text-muted break-words">{inv.customerName}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-bold">{verseLabel(inv.amountBaseUnits)}</span>
                   <StatusPill status={inv.status} />
                 </div>
-                <p className="text-xs text-[#747180] sm:hidden">
+                <p className="text-xs text-muted sm:hidden">
                   {formatDate(inv.payments?.[0]?.verifiedAt ?? inv.createdAt)}
                 </p>
               </Card>

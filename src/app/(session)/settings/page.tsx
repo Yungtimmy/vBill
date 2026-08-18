@@ -223,7 +223,7 @@ function SettingsInner() {
         <Card>
           <form onSubmit={onSubmit} className="space-y-5">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-[#F4F0FF] border border-[#E9E4F2] overflow-hidden flex items-center justify-center text-[#6D35F2] font-bold text-xl shrink-0">
+              <div className="h-16 w-16 rounded-full bg-lavender border border-line overflow-hidden flex items-center justify-center text-purple font-bold text-xl shrink-0">
                 {logo ? <img src={logo} alt="Business logo" className="h-full w-full object-cover" /> : "VB"}
               </div>
               <div>
@@ -233,7 +233,7 @@ function SettingsInner() {
                 {logo && (
                   <button
                     type="button"
-                    className="block mt-2 text-sm text-[#EF4444]"
+                    className="block mt-2 text-sm text-error"
                     onClick={() => setLogo(null)}
                   >
                     Remove logo
@@ -256,8 +256,8 @@ function SettingsInner() {
               <Label>Business email</Label>
               <Input type="email" value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} />
             </div>
-            {error && <p className="text-[#EF4444]">{error}</p>}
-            {saved && <p className="text-[#16A866]">Saved.</p>}
+            {error && <p className="text-error">{error}</p>}
+            {saved && <p className="text-success">Saved.</p>}
             <Button type="submit" disabled={saving}>
               {saving ? (
                 <>
@@ -272,24 +272,24 @@ function SettingsInner() {
 
         <Card className="mt-4">
           <p className="text-sm font-semibold mb-3">Wallet</p>
-          <p className="font-mono text-sm break-all text-[#747180]">{wallet || "—"}</p>
+          <p className="font-mono text-sm break-all text-muted">{wallet || "—"}</p>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-[#FAF9FF] border border-[#E9E4F2] p-4">
-              <p className="text-xs font-semibold text-[#747180]">VERSE balance</p>
+            <div className="rounded-2xl bg-bg border border-line p-4">
+              <p className="text-xs font-semibold text-muted">VERSE balance</p>
               <p className="mt-1 text-lg font-bold">
                 {balancesLoading ? <Skeleton className="h-7 w-24" /> : info?.verseDisplay ?? "—"}
               </p>
             </div>
-            <div className="rounded-2xl bg-[#FAF9FF] border border-[#E9E4F2] p-4">
-              <p className="text-xs font-semibold text-[#747180]">POL balance</p>
+            <div className="rounded-2xl bg-bg border border-line p-4">
+              <p className="text-xs font-semibold text-muted">POL balance</p>
               <p className="mt-1 text-lg font-bold">
                 {balancesLoading ? <Skeleton className="h-7 w-24" /> : info?.polDisplay ?? "—"}
               </p>
             </div>
           </div>
           {!balancesLoading && info && !info.balancesReachable && (
-            <p className="mt-3 text-xs text-[#B45309]">Balances unavailable - RPC not reachable.</p>
+            <p className="mt-3 text-xs text-warning">Balances unavailable - RPC not reachable.</p>
           )}
           <div className="mt-4 flex flex-wrap gap-3">
             <Button type="button" onClick={openWithdraw} disabled={!info}>
@@ -303,7 +303,7 @@ function SettingsInner() {
 
         <Card className="mt-4">
           <p className="text-sm font-semibold mb-2">Export wallet key</p>
-          <p className="text-sm text-[#747180] mb-4">
+          <p className="text-sm text-muted mb-4">
             Exports the private key of your embedded wallet through Privy&apos;s official flow. Anyone with this key
             controls your funds - keep it safe.
           </p>
@@ -330,15 +330,15 @@ function SettingsInner() {
             }}
           >
             <div
-              className="w-full max-w-md bg-white rounded-[22px] p-6 shadow-[0_24px_64px_-16px_rgba(23,21,31,0.35)]"
+              className="w-full max-w-md bg-card rounded-[22px] p-6 shadow-[0_24px_64px_-16px_rgba(23,21,31,0.35)]"
               onClick={(e) => e.stopPropagation()}
             >
               {wdPhase === "sent" && txHash ? (
                 <>
-                  <h2 className="text-lg font-bold text-[#17151F]">Transaction sent</h2>
-                  <p className="mt-2 text-sm text-[#747180] break-all">Tx: {txHash}</p>
+                  <h2 className="text-lg font-bold text-ink">Transaction sent</h2>
+                  <p className="mt-2 text-sm text-muted break-all">Tx: {txHash}</p>
                   {explorer && (
-                    <a href={explorer} target="_blank" rel="noreferrer" className="block text-sm text-[#6D35F2] mt-3">
+                    <a href={explorer} target="_blank" rel="noreferrer" className="block text-sm text-purple mt-3">
                       View on explorer
                     </a>
                   )}
@@ -350,8 +350,8 @@ function SettingsInner() {
                 </>
               ) : (
                 <>
-                  <h2 className="text-lg font-bold text-[#17151F]">Withdraw</h2>
-                  <p className="mt-1 text-sm text-[#747180]">Send {token} from your wallet to another address.</p>
+                  <h2 className="text-lg font-bold text-ink">Withdraw</h2>
+                  <p className="mt-1 text-sm text-muted">Send {token} from your wallet to another address.</p>
                   <div className="mt-5 space-y-4">
                     <div>
                       <Label>Token</Label>
@@ -363,8 +363,8 @@ function SettingsInner() {
                             onClick={() => setToken(t)}
                             className={`px-4 py-2 rounded-full text-sm font-semibold ${
                               token === t
-                                ? "bg-[#6D35F2] text-white"
-                                : "bg-white border border-[#E9E4F2] text-[#747180]"
+                                ? "bg-purple text-white"
+                                : "bg-card border border-line text-muted"
                             }`}
                           >
                             {t}
@@ -390,7 +390,7 @@ function SettingsInner() {
                         className="font-mono"
                       />
                     </div>
-                    {wdError && <p className="text-[#EF4444] text-sm">{wdError}</p>}
+                    {wdError && <p className="text-error text-sm">{wdError}</p>}
                     <div className="flex gap-3 pt-1">
                       <Button
                         type="button"

@@ -22,7 +22,7 @@ export function BrandLogo({
     />
   );
   const label = word ? (
-    <span className="text-[15px] font-semibold tracking-tight text-[#17151F]">VerseBill</span>
+    <span className="text-[15px] font-semibold tracking-tight text-ink">VerseBill</span>
   ) : null;
 
   const inner = (

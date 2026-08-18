@@ -34,7 +34,7 @@ function LoginInner() {
     <PublicFrame>
       <PayCard className="max-w-md mx-auto">
         <h1 className="text-[28px] font-bold tracking-tight mb-2">Continue with email</h1>
-        <p className="text-[#747180] mb-8 leading-relaxed">
+        <p className="text-muted mb-8 leading-relaxed">
           An embedded wallet is created for you. You will not be asked for a seed phrase.
         </p>
         <Button onClick={() => login()} disabled={!ready || authenticated} className="w-full">

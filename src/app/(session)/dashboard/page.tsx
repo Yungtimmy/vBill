@@ -77,7 +77,7 @@ function DashboardInner() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
           <h1 className="text-[28px] md:text-[32px] font-bold tracking-tight">{greeting()}</h1>
-          <p className="text-[#747180] mt-1">Here&apos;s what&apos;s happening with your invoices.</p>
+          <p className="text-muted mt-1">Here&apos;s what&apos;s happening with your invoices.</p>
         </div>
         <Link href="/invoices/new">
           <Button className="w-full sm:w-auto">
@@ -86,7 +86,7 @@ function DashboardInner() {
           </Button>
         </Link>
       </div>
-      {(error || bootError) && <p className="text-[#EF4444] mb-6">{error || bootError}</p>}
+      {(error || bootError) && <p className="text-error mb-6">{error || bootError}</p>}
 
       {loading && !error && (
         <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
@@ -102,30 +102,30 @@ function DashboardInner() {
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         <Card>
-          <p className="text-sm text-[#747180]">Total received</p>
+          <p className="text-sm text-muted">Total received</p>
           <p className="text-[28px] font-bold tracking-tight mt-3">
             {stats ? `${stats.paidDisplay} VERSE` : "—"}
           </p>
-          <p className="text-sm text-[#747180] mt-2">Verified on-chain</p>
+          <p className="text-sm text-muted mt-2">Verified on-chain</p>
         </Card>
         <Card>
-          <p className="text-sm text-[#747180]">Outstanding</p>
+          <p className="text-sm text-muted">Outstanding</p>
           <p className="text-[28px] font-bold tracking-tight mt-3">
             {stats ? `${stats.pendingDisplay} VERSE` : "—"}
           </p>
-          <p className="text-sm text-[#747180] mt-2">
+          <p className="text-sm text-muted mt-2">
             {stats ? `${stats.pendingInvoiceCount} invoices` : "—"}
           </p>
         </Card>
         <Card>
-          <p className="text-sm text-[#747180]">Paid invoices</p>
+          <p className="text-sm text-muted">Paid invoices</p>
           <p className="text-[28px] font-bold tracking-tight mt-3">{stats?.paidCount ?? "—"}</p>
-          <p className="text-sm text-[#747180] mt-2">{rate}</p>
+          <p className="text-sm text-muted mt-2">{rate}</p>
         </Card>
         <Card>
-          <p className="text-sm text-[#16A866]">Verified on-chain</p>
+          <p className="text-sm text-success">Verified on-chain</p>
           <p className="text-[28px] font-bold tracking-tight mt-3">{stats?.paidCount ?? "—"}</p>
-          <p className="text-sm text-[#16A866] mt-2">
+          <p className="text-sm text-success mt-2">
             {stats && stats.paidCount > 0 ? "100% verified" : "No payments yet"}
           </p>
         </Card>
@@ -134,17 +134,17 @@ function DashboardInner() {
       <div className="grid gap-4">
         <Card>
           <h2 className="text-lg font-semibold">On-chain activity</h2>
-          <p className="text-sm text-[#747180] mt-1 mb-4">Recent verified payments</p>
+          <p className="text-sm text-muted mt-1 mb-4">Recent verified payments</p>
           {verified.length === 0 ? (
-            <p className="text-sm text-[#747180]">Verified payments will appear here.</p>
+            <p className="text-sm text-muted">Verified payments will appear here.</p>
           ) : (
             <div className="space-y-4">
               {verified.slice(0, 4).map((inv) => (
                 <Link key={inv.id} href={`/invoices/${inv.id}`} className="block">
-                  <p className="text-sm font-medium text-[#16A866]">✓ Payment verified</p>
+                  <p className="text-sm font-medium text-success">✓ Payment verified</p>
                   <p className="font-bold mt-1">{verseLabel(inv.amountBaseUnits)}</p>
-                  <p className="text-sm text-[#747180]">{inv.customerName}</p>
-                  <p className="text-xs text-[#747180] mt-1">
+                  <p className="text-sm text-muted">{inv.customerName}</p>
+                  <p className="text-xs text-muted mt-1">
                     Polygon · {formatDate(inv.payments?.[0]?.verifiedAt ?? inv.createdAt)}
                   </p>
                 </Link>

@@ -13,7 +13,7 @@ export default function RefreshPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-[50vh] flex items-center justify-center text-sm text-[#747180]">
+        <main className="min-h-[50vh] flex items-center justify-center text-sm text-muted">
           Loading
         </main>
       }
@@ -41,7 +41,7 @@ function RefreshInner() {
   }, [params, ready, router]);
 
   return (
-    <main className="min-h-[50vh] flex items-center justify-center text-sm text-[#747180]">
+    <main className="min-h-[50vh] flex items-center justify-center text-sm text-muted">
       Loading
     </main>
   );

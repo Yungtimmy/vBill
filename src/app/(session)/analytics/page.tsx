@@ -43,30 +43,30 @@ function AnalyticsInner() {
   return (
     <AppShell>
       <h1 className="text-[28px] font-bold tracking-tight mb-2">Analytics</h1>
-      <p className="text-sm text-[#747180] mb-6">Invoice volume and payment completion.</p>
-      {error && <p className="text-[#EF4444] mb-4">{error}</p>}
+      <p className="text-sm text-muted mb-6">Invoice volume and payment completion.</p>
+      {error && <p className="text-error mb-4">{error}</p>}
       <div className="grid sm:grid-cols-2 gap-4 max-w-3xl">
         <Card>
-          <p className="text-sm text-[#747180]">Invoiced</p>
+          <p className="text-sm text-muted">Invoiced</p>
           <p className="text-[28px] font-bold mt-3">{stats ? `${stats.invoicedDisplay} VERSE` : "—"}</p>
-          <p className="text-sm text-[#747180] mt-2">{stats ? `${stats.invoiceCount} invoices` : ""}</p>
+          <p className="text-sm text-muted mt-2">{stats ? `${stats.invoiceCount} invoices` : ""}</p>
         </Card>
         <Card>
-          <p className="text-sm text-[#747180]">Received</p>
+          <p className="text-sm text-muted">Received</p>
           <p className="text-[28px] font-bold mt-3">{stats ? `${stats.paidDisplay} VERSE` : "—"}</p>
-          <p className="text-sm text-[#747180] mt-2">{rate} paid</p>
+          <p className="text-sm text-muted mt-2">{rate} paid</p>
         </Card>
         <Card>
-          <p className="text-sm text-[#747180]">Outstanding</p>
+          <p className="text-sm text-muted">Outstanding</p>
           <p className="text-[28px] font-bold mt-3">{stats ? `${stats.pendingDisplay} VERSE` : "—"}</p>
-          <p className="text-sm text-[#747180] mt-2">
+          <p className="text-sm text-muted mt-2">
             {stats ? `${stats.pendingInvoiceCount} open · ${stats.overdueCount} overdue` : ""}
           </p>
         </Card>
         <Card>
-          <p className="text-sm text-[#16A866]">Verified on-chain</p>
+          <p className="text-sm text-success">Verified on-chain</p>
           <p className="text-[28px] font-bold mt-3">{stats?.paidCount ?? "—"}</p>
-          <p className="text-sm text-[#16A866] mt-2">
+          <p className="text-sm text-success mt-2">
             {stats && stats.paidCount > 0 ? "100% of paid invoices" : "No payments yet"}
           </p>
         </Card>

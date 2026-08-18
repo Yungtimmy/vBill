@@ -41,7 +41,7 @@ export default function VerifyPage() {
   if (error) {
     return (
       <PublicFrame>
-        <p className="max-w-md mx-auto text-[#EF4444]">{error}</p>
+        <p className="max-w-md mx-auto text-error">{error}</p>
       </PublicFrame>
     );
   }
@@ -66,20 +66,20 @@ export default function VerifyPage() {
       <PayCard className="max-w-md mx-auto text-center">
         {proof.verifiedOnChain ? (
           <>
-            <div className="mx-auto h-16 w-16 rounded-full bg-[#E8F8F0] text-[#16A866] text-3xl font-bold flex items-center justify-center">
+            <div className="mx-auto h-16 w-16 rounded-full bg-success-soft text-success text-3xl font-bold flex items-center justify-center">
               ✓
             </div>
             <p className="mt-6 text-xl font-semibold">Payment verified</p>
           </>
         ) : (
-          <p className="text-sm font-medium text-[#747180]">Payment receipt</p>
+          <p className="text-sm font-medium text-muted">Payment receipt</p>
         )}
         <p className="mt-4 text-[32px] font-bold tracking-tight">
           {proof.amountDisplay} {proof.tokenSymbol}
         </p>
         <p className="mt-2 font-medium">{proof.businessName}</p>
-        <p className="mt-1 text-sm text-[#747180]">{proof.invoiceNumber}</p>
-        {payment && <p className="mt-4 font-mono text-sm text-[#747180]">{shortenHash(payment.txHash)}</p>}
+        <p className="mt-1 text-sm text-muted">{proof.invoiceNumber}</p>
+        {payment && <p className="mt-4 font-mono text-sm text-muted">{shortenHash(payment.txHash)}</p>}
         <div className="mt-6 text-left">
           <OnChainProof
             verified={proof.verifiedOnChain}

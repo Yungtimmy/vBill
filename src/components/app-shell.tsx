@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { BrandLogo } from "@/components/brand-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
   { href: "/dashboard", label: "Dashboard" },
@@ -32,15 +33,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (!ready || !authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-[#747180] text-sm">
+      <div className="min-h-screen flex items-center justify-center text-muted text-sm">
         Loading
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9FF] text-[#17151F]">
-      <header className="sticky top-0 z-30 bg-white border-b border-[#E9E4F2]">
+    <div className="min-h-screen bg-bg text-ink">
+      <header className="sticky top-0 z-30 bg-card border-b border-line">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
           <BrandLogo href="/dashboard" size={44} />
           <nav className="hidden md:flex items-center gap-1 ml-4">
@@ -51,8 +52,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "px-3 py-1.5 rounded-full text-sm",
                   pathname.startsWith(l.href)
-                    ? "bg-[#F4F0FF] text-[#6D35F2] font-semibold"
-                    : "text-[#747180] hover:text-[#17151F]",
+                    ? "bg-lavender text-purple font-semibold"
+                    : "text-muted hover:text-ink",
                 )}
               >
                 {l.label}
@@ -60,12 +61,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
           <div className="ml-auto hidden md:flex items-center gap-3">
-            <span className="text-xs font-medium text-[#747180] px-3 py-1.5 rounded-full bg-[#F4F0FF]">
+            <span className="text-xs font-medium text-muted px-3 py-1.5 rounded-full bg-lavender">
               Polygon
             </span>
+            <ThemeToggle />
             <Link
               href="/settings"
-              className="h-9 w-9 rounded-full bg-[#6D35F2] text-white text-sm font-semibold flex items-center justify-center"
+              className="h-9 w-9 rounded-full bg-purple text-white text-sm font-semibold flex items-center justify-center"
               aria-label="Settings"
             >
               {initial}
@@ -73,7 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <button
             type="button"
-            className="ml-auto md:hidden h-10 w-10 rounded-xl border border-[#E9E4F2] flex items-center justify-center"
+            className="ml-auto md:hidden h-10 w-10 rounded-xl border border-line flex items-center justify-center"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Close menu" : "Open menu"}
           >
@@ -81,7 +83,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
         {open && (
-          <div className="md:hidden border-t border-[#E9E4F2] bg-white px-4 py-4 space-y-1">
+          <div className="md:hidden border-t border-line bg-card px-4 py-4 space-y-1">
             {links.map((l) => (
               <Link
                 key={l.href}
@@ -89,20 +91,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "block px-3 py-3 rounded-2xl text-sm",
                   pathname.startsWith(l.href)
-                    ? "bg-[#F4F0FF] text-[#6D35F2] font-semibold"
-                    : "text-[#747180]",
+                    ? "bg-lavender text-purple font-semibold"
+                    : "text-muted",
                 )}
               >
                 {l.label}
               </Link>
             ))}
-            <Link href="/settings" className="block px-3 py-3 rounded-2xl text-sm text-[#747180]">
+            <Link href="/settings" className="block px-3 py-3 rounded-2xl text-sm text-muted">
               Settings
             </Link>
+            <div className="px-3 py-2">
+              <ThemeToggle />
+            </div>
             <button
               type="button"
               onClick={() => logout()}
-              className="block w-full text-left px-3 py-3 rounded-2xl text-sm text-[#747180]"
+              className="block w-full text-left px-3 py-3 rounded-2xl text-sm text-muted"
             >
               Sign out
             </button>

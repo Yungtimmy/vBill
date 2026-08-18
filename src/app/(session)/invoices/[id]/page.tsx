@@ -131,7 +131,7 @@ function InvoiceDetailInner() {
 
   return (
     <AppShell>
-      {error && <p className="text-[#EF4444] mb-4 no-print">{error}</p>}
+      {error && <p className="text-error mb-4 no-print">{error}</p>}
       {!invoice ? (
         <div className="max-w-2xl space-y-4">
           <Skeleton className="h-4 w-16" />
@@ -155,7 +155,7 @@ function InvoiceDetailInner() {
         </div>
       ) : (
         <article className="max-w-2xl space-y-4">
-          <Link href="/invoices" className="text-sm text-[#747180] no-print">
+          <Link href="/invoices" className="text-sm text-muted no-print">
             ← Back
           </Link>
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -164,7 +164,7 @@ function InvoiceDetailInner() {
           </div>
 
           <Card>
-            <p className="text-xs font-semibold tracking-wide text-[#747180] uppercase">{invoice.customerName}</p>
+            <p className="text-xs font-semibold tracking-wide text-muted uppercase">{invoice.customerName}</p>
             <div className="mt-4 space-y-2 text-sm">
               {invoice.items.map((item, i) => (
                 <div key={i} className="flex justify-between gap-4">
@@ -177,7 +177,7 @@ function InvoiceDetailInner() {
               ))}
             </div>
             <p className="mt-5 text-[32px] font-bold tracking-tight">{verseLabel(invoice.amountBaseUnits)}</p>
-            <div className="mt-4 space-y-1 text-sm text-[#747180]">
+            <div className="mt-4 space-y-1 text-sm text-muted">
               <p>Due: {invoice.dueDate ? formatDate(invoice.dueDate) : "—"}</p>
               <p>Status: {invoice.status}</p>
             </div>
@@ -239,11 +239,11 @@ function InvoiceDetailInner() {
               }}
             >
               <div
-                className="w-full max-w-md bg-white rounded-[22px] p-6 shadow-[0_24px_64px_-16px_rgba(23,21,31,0.35)]"
+                className="w-full max-w-md bg-card rounded-[22px] p-6 shadow-[0_24px_64px_-16px_rgba(23,21,31,0.35)]"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h2 className="text-lg font-bold text-[#17151F]">Cancel this invoice?</h2>
-                <p className="mt-2 text-sm text-[#747180]">
+                <h2 className="text-lg font-bold text-ink">Cancel this invoice?</h2>
+                <p className="mt-2 text-sm text-muted">
                   Are you sure you want to cancel this invoice? The payment link will stop working and this can&apos;t be
                   undone.
                 </p>
