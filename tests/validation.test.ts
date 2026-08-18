@@ -5,7 +5,6 @@ import {
   publicIdSchema,
   submitPaymentSchema,
   txHashSchema,
-  updateWalletSchema,
 } from "@/lib/validation";
 
 const okAddr = "0x83a1b9c141f2aaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -58,8 +57,7 @@ describe("validation", () => {
     expect(publicIdSchema.safeParse("a".repeat(36)).success).toBe(true);
   });
 
-  it("accepts a well-formed wallet change", () => {
-    expect(updateWalletSchema.safeParse({ walletAddress: okAddr }).success).toBe(true);
+  it("accepts a well-formed tx hash", () => {
     expect(txHashSchema.safeParse(okHash).success).toBe(true);
   });
 });

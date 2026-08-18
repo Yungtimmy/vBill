@@ -7,9 +7,3 @@ export function assertMerchantOwns(merchantId: string, resourceMerchantId: strin
     throw new ForbiddenError();
   }
 }
-
-export function isFreshAuth(issuedAt: number | undefined, maxAgeSeconds: number): boolean {
-  if (issuedAt == null) return false;
-  const age = Math.floor(Date.now() / 1000) - issuedAt;
-  return age >= 0 && age <= maxAgeSeconds;
-}

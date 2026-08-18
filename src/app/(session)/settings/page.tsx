@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { createWalletClient, custom, isAddress, parseUnits, type Hex } from "viem";
 import { AppShell } from "@/components/app-shell";
@@ -299,9 +298,6 @@ function SettingsInner() {
             <Button type="button" variant="ghost" onClick={loadBalances} disabled={balancesLoading}>
               {balancesLoading ? "Refreshing…" : "Refresh balances"}
             </Button>
-            <Link href="/settings/wallet" className="inline-flex items-center text-sm font-medium text-[#6D35F2] px-1">
-              Change payment wallet
-            </Link>
           </div>
         </Card>
 

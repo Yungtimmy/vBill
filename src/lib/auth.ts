@@ -3,9 +3,9 @@ import type { User, Merchant, Role } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ConfigurationError, ForbiddenError, UnauthorizedError } from "@/lib/errors";
 import { normalizeAddress } from "@/lib/addresses";
-import { assertMerchantOwns, isFreshAuth } from "@/lib/authz";
+import { assertMerchantOwns } from "@/lib/authz";
 
-export { assertMerchantOwns, isFreshAuth };
+export { assertMerchantOwns };
 
 export type Session = {
   privyUserId: string;

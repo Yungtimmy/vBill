@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useState } from "react";
-import { Menu, X, Wallet } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { BrandLogo } from "@/components/brand-logo";
 
@@ -63,13 +63,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-xs font-medium text-[#747180] px-3 py-1.5 rounded-full bg-[#F4F0FF]">
               Polygon
             </span>
-            <Link
-              href="/settings/wallet"
-              className="h-9 w-9 rounded-full border border-[#E9E4F2] flex items-center justify-center text-[#6D35F2]"
-              aria-label="Wallet"
-            >
-              <Wallet size={16} />
-            </Link>
             <Link
               href="/settings"
               className="h-9 w-9 rounded-full bg-[#6D35F2] text-white text-sm font-semibold flex items-center justify-center"

@@ -92,12 +92,6 @@ export const updateSettingsSchema = z
   })
   .strict();
 
-export const updateWalletSchema = z
-  .object({
-    walletAddress: addressSchema,
-  })
-  .strict();
-
 export const submitPaymentSchema = z
   .object({
     txHash: txHashSchema,

@@ -1,9 +1,5 @@
 import type { Merchant } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { normalizeAddress } from "@/lib/addresses";
-import { AppError } from "@/lib/errors";
-import { isFreshAuth } from "@/lib/authz";
-import { writeAudit } from "@/server/audit";
 
 export async function updateProfile(
   merchant: Merchant,
@@ -17,47 +13,6 @@ export async function updateProfile(
       ...(input.logo !== undefined ? { logo: input.logo || null } : {}),
     },
   });
-}
-
-export async function changeWallet(input: {
-  merchant: Merchant;
-  userId: string;
-  walletAddress: string;
-  issuedAt?: number;
-}) {
-  const maxAge = Number.parseInt(process.env.WALLET_CHANGE_MAX_AGE_SECONDS ?? "600", 10);
-  if (!isFreshAuth(input.issuedAt, Number.isFinite(maxAge) ? maxAge : 600)) {
-    throw new AppError(
-      "STALE_AUTH",
-      "Wallet changes require a recently authenticated session. Sign in again, then retry.",
-      401,
-    );
-  }
-
-  const next = normalizeAddress(input.walletAddress);
-  await writeAudit({
-    userId: input.userId,
-    event: "WALLET_CHANGE_REQUESTED",
-    metadata: { from: input.merchant.walletAddress, to: next },
-  });
-
-  const updated = await prisma.merchant.update({
-    where: { id: input.merchant.id },
-    data: { walletAddress: next },
-  });
-
-  await prisma.user.update({
-    where: { id: input.userId },
-    data: { walletAddress: next },
-  });
-
-  await writeAudit({
-    userId: input.userId,
-    event: "WALLET_CHANGED",
-    metadata: { to: next },
-  });
-
-  return updated;
 }
 
 export async function dashboardStats(merchantId: string) {
