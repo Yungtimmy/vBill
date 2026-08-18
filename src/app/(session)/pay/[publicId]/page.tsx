@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { createWalletClient, custom, type Hex } from "viem";
 import { LoaderCircle } from "lucide-react";
-import { Button, Check } from "@/components/ui";
+import { Button, Check, Skeleton } from "@/components/ui";
 import { OnChainProof } from "@/components/on-chain-proof";
 import { PayCard, PublicFrame } from "@/components/public-frame";
 import { erc20Abi } from "@/lib/erc20";
@@ -75,7 +75,13 @@ export default function PayPage() {
   if (!data) {
     return (
       <PublicFrame>
-        <p className="text-center text-[#747180]">Loading</p>
+        <PayCard className="max-w-md mx-auto text-center">
+          <Skeleton className="h-4 w-40 mx-auto" />
+          <Skeleton className="h-10 w-56 mx-auto mt-8" />
+          <Skeleton className="h-4 w-20 mx-auto mt-4" />
+          <Skeleton className="h-4 w-64 mx-auto mt-8" />
+          <Skeleton className="h-12 w-full mt-8 rounded-2xl" />
+        </PayCard>
       </PublicFrame>
     );
   }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
-import { Card } from "@/components/ui";
+import { Card, Skeleton } from "@/components/ui";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
@@ -20,19 +20,31 @@ function CustomersInner() {
   const { readyOnServer } = useAccountBootstrap();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!readyOnServer) return;
+    setLoading(true);
     api<{ customers: Customer[] }>("/api/customers")
       .then((d) => setCustomers(d.customers))
-      .catch((err) => setError(formatError(err)));
+      .catch((err) => setError(formatError(err)))
+      .finally(() => setLoading(false));
   }, [readyOnServer]);
 
   return (
     <AppShell>
       <h1 className="text-[28px] font-bold tracking-tight mb-6">Customers</h1>
       {error && <p className="text-[#EF4444] mb-4">{error}</p>}
-      {customers.length === 0 ? (
+      {loading && !error ? (
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <Card key={i} className="flex justify-between gap-4">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-5 w-40" />
+            </Card>
+          ))}
+        </div>
+      ) : customers.length === 0 ? (
         <p className="text-[#747180]">Customers appear here after you create invoices.</p>
       ) : (
         <div className="space-y-3">

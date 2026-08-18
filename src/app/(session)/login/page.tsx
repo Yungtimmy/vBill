@@ -3,7 +3,7 @@
 import { usePrivy, useLogin } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Button } from "@/components/ui";
+import { Button, Spinner } from "@/components/ui";
 import { PayCard, PublicFrame } from "@/components/public-frame";
 import { isPrivyConfigured } from "@/lib/privy-public";
 import { MissingConfig } from "@/components/missing-config";
@@ -38,7 +38,13 @@ function LoginInner() {
           An embedded wallet is created for you. You will not be asked for a seed phrase.
         </p>
         <Button onClick={() => login()} disabled={!ready || authenticated} className="w-full">
-          Continue with email
+          {!ready ? (
+            <>
+              <Spinner className="mr-2" /> Connecting…
+            </>
+          ) : (
+            "Continue with email"
+          )}
         </Button>
       </PayCard>
     </PublicFrame>

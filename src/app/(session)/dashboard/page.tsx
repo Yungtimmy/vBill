@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { Button, Card, StatusPill } from "@/components/ui";
+import { Button, Card, Skeleton, StatusPill } from "@/components/ui";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
@@ -49,9 +49,11 @@ function DashboardInner() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!readyOnServer) return;
+    setLoading(true);
     Promise.all([
       api<{ stats: Stats }>("/api/dashboard/stats"),
       api<{ invoices: Invoice[] }>("/api/invoices?take=8"),
@@ -60,7 +62,8 @@ function DashboardInner() {
         setStats(s.stats);
         setInvoices(i.invoices);
       })
-      .catch((err) => setError(formatError(err)));
+      .catch((err) => setError(formatError(err)))
+      .finally(() => setLoading(false));
   }, [readyOnServer]);
 
   const rate =
@@ -84,6 +87,18 @@ function DashboardInner() {
         </Link>
       </div>
       {(error || bootError) && <p className="text-[#EF4444] mb-6">{error || bootError}</p>}
+
+      {loading && !error && (
+        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          {[0, 1, 2, 3].map((i) => (
+            <Card key={i}>
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-32 mt-4" />
+              <Skeleton className="h-4 w-28 mt-3" />
+            </Card>
+          ))}
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         <Card>
@@ -124,7 +139,18 @@ function DashboardInner() {
               View all
             </Link>
           </div>
-          {invoices.length === 0 ? (
+          {loading && !error ? (
+            <div className="divide-y divide-[#E9E4F2]">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="grid grid-cols-1 md:grid-cols-[120px_1fr_140px_auto] gap-2 md:gap-3 px-5 py-4">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+              ))}
+            </div>
+          ) : invoices.length === 0 ? (
             <p className="px-5 pb-5 text-[#747180] text-sm">No invoices yet.</p>
           ) : (
             <div className="divide-y divide-[#E9E4F2]">

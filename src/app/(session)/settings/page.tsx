@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { createWalletClient, custom, isAddress, parseUnits, type Hex } from "viem";
 import { AppShell } from "@/components/app-shell";
-import { Button, Card, Input, Label } from "@/components/ui";
+import { Button, Card, Input, Label, Skeleton, Spinner } from "@/components/ui";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
@@ -53,6 +53,7 @@ function SettingsInner() {
   const [wallet, setWallet] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [info, setInfo] = useState<WalletInfo | null>(null);
@@ -111,6 +112,7 @@ function SettingsInner() {
     e.preventDefault();
     setError(null);
     setSaved(false);
+    setSaving(true);
     try {
       await api("/api/settings", {
         method: "PATCH",
@@ -123,6 +125,8 @@ function SettingsInner() {
       setSaved(true);
     } catch (err) {
       setError(formatError(err));
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -255,7 +259,15 @@ function SettingsInner() {
             </div>
             {error && <p className="text-[#EF4444]">{error}</p>}
             {saved && <p className="text-[#16A866]">Saved.</p>}
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? (
+                <>
+                  <Spinner className="mr-2" /> Saving…
+                </>
+              ) : (
+                "Save"
+              )}
+            </Button>
           </form>
         </Card>
 
@@ -267,13 +279,13 @@ function SettingsInner() {
             <div className="rounded-2xl bg-[#FAF9FF] border border-[#E9E4F2] p-4">
               <p className="text-xs font-semibold text-[#747180]">VERSE balance</p>
               <p className="mt-1 text-lg font-bold">
-                {balancesLoading ? "…" : info?.verseDisplay ?? "—"}
+                {balancesLoading ? <Skeleton className="h-7 w-24" /> : info?.verseDisplay ?? "—"}
               </p>
             </div>
             <div className="rounded-2xl bg-[#FAF9FF] border border-[#E9E4F2] p-4">
               <p className="text-xs font-semibold text-[#747180]">POL balance</p>
               <p className="mt-1 text-lg font-bold">
-                {balancesLoading ? "…" : info?.polDisplay ?? "—"}
+                {balancesLoading ? <Skeleton className="h-7 w-24" /> : info?.polDisplay ?? "—"}
               </p>
             </div>
           </div>
@@ -389,7 +401,15 @@ function SettingsInner() {
                         onClick={sendWithdraw}
                         disabled={wdPhase === "signing" || !authenticated}
                       >
-                        {wdPhase === "signing" ? "Confirm in wallet…" : authenticated ? "Withdraw" : "Continue with email"}
+                        {wdPhase === "signing" ? (
+                          <>
+                            <Spinner className="mr-2" /> Confirm in wallet…
+                          </>
+                        ) : authenticated ? (
+                          "Withdraw"
+                        ) : (
+                          "Continue with email"
+                        )}
                       </Button>
                       <Button type="button" variant="ghost" onClick={() => setWithdrawOpen(false)} disabled={wdPhase === "signing"}>
                         Close

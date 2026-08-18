@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { Card, StatusPill } from "@/components/ui";
+import { Card, Skeleton, StatusPill } from "@/components/ui";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
@@ -39,7 +39,19 @@ function CustomerDetailInner() {
     <AppShell>
       {error && <p className="text-[#EF4444]">{error}</p>}
       {!customer ? (
-        <p className="text-[#747180]">Loading</p>
+        <div>
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-8 w-48 mt-4" />
+          <Skeleton className="h-4 w-36 mt-2 mb-6" />
+          <div className="space-y-3">
+            {[0, 1].map((i) => (
+              <Card key={i} className="flex justify-between items-center">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-6 w-24 rounded-full" />
+              </Card>
+            ))}
+          </div>
+        </div>
       ) : (
         <>
           <Link href="/customers" className="text-sm text-[#747180]">

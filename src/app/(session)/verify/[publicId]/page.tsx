@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Button } from "@/components/ui";
+import { Button, Skeleton } from "@/components/ui";
 import { OnChainProof } from "@/components/on-chain-proof";
 import { PayCard, PublicFrame } from "@/components/public-frame";
 import { shortenHash } from "@/lib/addresses";
@@ -48,7 +48,13 @@ export default function VerifyPage() {
   if (!proof) {
     return (
       <PublicFrame>
-        <p className="text-center text-[#747180]">Loading</p>
+        <PayCard className="max-w-md mx-auto text-center">
+          <Skeleton className="h-16 w-16 rounded-full mx-auto" />
+          <Skeleton className="h-10 w-56 mx-auto mt-8" />
+          <Skeleton className="h-4 w-32 mx-auto mt-4" />
+          <Skeleton className="h-4 w-24 mx-auto mt-2" />
+          <Skeleton className="h-12 w-full mt-8 rounded-2xl" />
+        </PayCard>
       </PublicFrame>
     );
   }

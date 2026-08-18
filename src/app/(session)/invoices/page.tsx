@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { Button, Card, Input, StatusPill } from "@/components/ui";
+import { Button, Card, Input, Skeleton, StatusPill } from "@/components/ui";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
@@ -40,12 +40,15 @@ function InvoicesInner() {
   const [query, setQuery] = useState("");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!readyOnServer) return;
+    setLoading(true);
     api<{ invoices: Invoice[] }>(`/api/invoices?status=${status}`)
       .then((d) => setInvoices(d.invoices))
-      .catch((err) => setError(formatError(err)));
+      .catch((err) => setError(formatError(err)))
+      .finally(() => setLoading(false));
   }, [readyOnServer, status]);
 
   const visible = useMemo(() => {
@@ -90,7 +93,35 @@ function InvoicesInner() {
         </div>
       </div>
       {error && <p className="text-[#EF4444] mb-4">{error}</p>}
-      {visible.length === 0 ? (
+      {loading && !error ? (
+        <>
+          <Card className="hidden md:block p-0 overflow-hidden">
+            <div className="divide-y divide-[#E9E4F2]">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="grid grid-cols-[140px_1fr_160px_140px_auto] gap-3 items-center px-5 py-4">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </Card>
+          <div className="md:hidden space-y-3">
+            {[0, 1, 2].map((i) => (
+              <Card key={i}>
+                <div className="flex items-start justify-between gap-3">
+                  <Skeleton className="h-5 w-28" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-36 mt-3" />
+                <Skeleton className="h-6 w-24 mt-3" />
+              </Card>
+            ))}
+          </div>
+        </>
+      ) : visible.length === 0 ? (
         <p className="text-[#747180]">No invoices in this view.</p>
       ) : (
         <>

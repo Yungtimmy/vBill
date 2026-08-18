@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
-import { Button, Card, StatusPill } from "@/components/ui";
+import { Button, Card, Skeleton, Spinner, StatusPill } from "@/components/ui";
 import { OnChainProof } from "@/components/on-chain-proof";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
@@ -49,6 +49,7 @@ function InvoiceDetailInner() {
   const [copied, setCopied] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
@@ -79,11 +80,14 @@ function InvoiceDetailInner() {
 
   async function publish() {
     if (!invoice) return;
+    setPublishing(true);
     try {
       const d = await api<{ invoice: Invoice }>(`/api/invoices/${invoice.id}/publish`, { method: "POST" });
       setInvoice(d.invoice);
     } catch (err) {
       setError(formatError(err));
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -110,7 +114,26 @@ function InvoiceDetailInner() {
     <AppShell>
       {error && <p className="text-[#EF4444] mb-4 no-print">{error}</p>}
       {!invoice ? (
-        <p className="text-[#747180]">Loading</p>
+        <div className="max-w-2xl space-y-4">
+          <Skeleton className="h-4 w-16" />
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-9 w-32" />
+            <Skeleton className="h-6 w-28 rounded-full" />
+          </div>
+          <Card>
+            <Skeleton className="h-4 w-40" />
+            <div className="mt-5 space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+            <Skeleton className="h-8 w-44 mt-5" />
+            <Skeleton className="h-4 w-24 mt-4" />
+          </Card>
+          <Card>
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-4 w-64 mt-3" />
+          </Card>
+        </div>
       ) : (
         <article className="max-w-2xl space-y-4">
           <Link href="/invoices" className="text-sm text-[#747180] no-print">
@@ -151,8 +174,14 @@ function InvoiceDetailInner() {
 
           <div className="flex flex-wrap gap-3 no-print">
             {invoice.status === "DRAFT" && (
-              <Button type="button" onClick={publish}>
-                Send invoice
+              <Button type="button" onClick={publish} disabled={publishing}>
+                {publishing ? (
+                  <>
+                    <Spinner className="mr-2" /> Sending…
+                  </>
+                ) : (
+                  "Send invoice"
+                )}
               </Button>
             )}
             {invoice.status !== "DRAFT" && (
@@ -190,7 +219,13 @@ function InvoiceDetailInner() {
                 </p>
                 <div className="mt-6 flex gap-3">
                   <Button type="button" variant="danger" disabled={cancelling} onClick={cancel}>
-                    {cancelling ? "Cancelling…" : "Cancel"}
+                    {cancelling ? (
+                      <>
+                        <Spinner className="mr-2" /> Cancelling…
+                      </>
+                    ) : (
+                      "Cancel"
+                    )}
                   </Button>
                   <Button type="button" variant="ghost" disabled={cancelling} onClick={() => setConfirmCancel(false)}>
                     Keep
