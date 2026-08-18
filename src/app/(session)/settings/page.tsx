@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { createWalletClient, custom, isAddress, parseUnits, type Hex } from "viem";
+import { Copy, Check } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button, Card, Input, Label, Skeleton, Spinner } from "@/components/ui";
 import { useAccountBootstrap } from "@/components/bootstrap";
@@ -53,6 +54,7 @@ function SettingsInner() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [info, setInfo] = useState<WalletInfo | null>(null);
@@ -74,6 +76,7 @@ function SettingsInner() {
         setBusinessEmail(d.settings.businessEmail ?? "");
         setLogo(d.settings.logo ?? null);
         setWallet(d.settings.walletAddress);
+        window.dispatchEvent(new CustomEvent("vb-merchant-logo", { detail: d.settings.logo ?? null }));
       })
       .catch((err) => setError(formatError(err)));
   }, [readyOnServer]);
@@ -102,6 +105,7 @@ function SettingsInner() {
       const dataUrl = await fileToDataUrl(file);
       setLogo(dataUrl);
       setError(null);
+      window.dispatchEvent(new CustomEvent("vb-merchant-logo", { detail: dataUrl }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read image.");
     }
@@ -122,6 +126,7 @@ function SettingsInner() {
         }),
       });
       setSaved(true);
+      window.dispatchEvent(new CustomEvent("vb-merchant-logo", { detail: logo ?? null }));
     } catch (err) {
       setError(formatError(err));
     } finally {
@@ -168,6 +173,10 @@ function SettingsInner() {
     }
     setWdPhase("signing");
     try {
+      await api("/api/gas/fund", {
+        method: "POST",
+        body: JSON.stringify({ fromAddress: walletInfo.address }),
+      }).catch(() => undefined);
       await walletInfo.switchChain(info.network.chainId);
       const provider = await walletInfo.getEthereumProvider();
       const chain = {
@@ -234,7 +243,10 @@ function SettingsInner() {
                   <button
                     type="button"
                     className="block mt-2 text-sm text-error"
-                    onClick={() => setLogo(null)}
+                    onClick={() => {
+                      setLogo(null);
+                      window.dispatchEvent(new CustomEvent("vb-merchant-logo", { detail: null }));
+                    }}
                   >
                     Remove logo
                   </button>
@@ -272,7 +284,27 @@ function SettingsInner() {
 
         <Card className="mt-4">
           <p className="text-sm font-semibold mb-3">Wallet</p>
-          <p className="font-mono text-sm break-all text-muted">{wallet || "—"}</p>
+          <div className="flex items-start gap-2">
+            <p className="font-mono text-sm break-all text-muted flex-1">{wallet || "—"}</p>
+            {wallet && (
+              <button
+                type="button"
+                className="shrink-0 h-9 w-9 rounded-xl border border-line flex items-center justify-center text-muted hover:text-ink hover:bg-lavender"
+                aria-label={copied ? "Copied" : "Copy wallet address"}
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(wallet);
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 1600);
+                  } catch {
+                    setError("Could not copy address.");
+                  }
+                }}
+              >
+                {copied ? <Check size={16} /> : <Copy size={16} />}
+              </button>
+            )}
+          </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-bg border border-line p-4">

@@ -43,6 +43,7 @@ export default function PayPage() {
   const [error, setError] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("ready");
   const [sentHash, setSentHash] = useState<string | null>(null);
+  const [sponsored, setSponsored] = useState(false);
   const polling = useRef(false);
 
   const load = useCallback(async () => {
@@ -65,6 +66,13 @@ export default function PayPage() {
   useEffect(() => {
     load().catch((err) => setError(err instanceof Error ? err.message : "Failed to load."));
   }, [load]);
+
+  useEffect(() => {
+    fetch("/api/gas/status")
+      .then((res) => res.json())
+      .then((json) => setSponsored(Boolean(json.enabled)))
+      .catch(() => undefined);
+  }, []);
 
   // Keep verifying until the payment reaches a terminal state, with
   // backoff, instead of giving up after a fixed window.
@@ -162,6 +170,7 @@ export default function PayPage() {
           <p className="mt-4 text-sm text-muted">
             Payment successfully verified on the Polygon network.
           </p>
+          {sponsored && <SponsoredNote />}
           <div className="mt-6 text-left space-y-2">
             <Check>VERSE token verified</Check>
             <Check>Recipient verified</Check>
@@ -287,6 +296,7 @@ export default function PayPage() {
               <Check>Merchant verified</Check>
               <Check>Invoice verified</Check>
             </div>
+            {sponsored && <SponsoredNote />}
           </PayCard>
           {error && <p className="text-error mt-4 text-center">{error}</p>}
         </div>
@@ -324,6 +334,7 @@ export default function PayPage() {
         <p className="mt-3 text-[32px] font-bold tracking-tight">{data.invoice.amountDisplay} VERSE</p>
         <p className="mt-3 text-sm text-muted">Polygon</p>
         <p className="mt-4 text-sm font-medium text-success">Merchant verified ✓</p>
+        {sponsored && <SponsoredNote />}
         <div className="mt-6 text-left text-sm">
           <p className="text-muted">Paying to</p>
           <p className="mt-1 font-mono text-sm break-all">{data.invoice.merchantWallet}</p>
@@ -400,8 +411,13 @@ function PayActions({
       setError("No wallet is available.");
       return;
     }
-    setPhase("wallet");
     try {
+      await fetch(`/api/pay/${publicId}/sponsor`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ fromAddress: wallet.address }),
+      }).catch(() => undefined);
+      setPhase("wallet");
       await wallet.switchChain(data.invoice.chainId);
       const provider = await wallet.getEthereumProvider();
       const chain = {
@@ -459,5 +475,11 @@ function PayActions({
     <Button className={`w-full ${className ?? "mt-6"}`} onClick={start} disabled={!ready || phase === "wallet" || phase === "verifying"}>
       {authenticated ? label : "Continue with email"}
     </Button>
+  );
+}
+
+function SponsoredNote() {
+  return (
+    <p className="mt-4 text-xs font-medium text-purple">This transaction was sponsored by VerseBill</p>
   );
 }

@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { api } from "@/lib/client-api";
 
 const links = [
   { href: "/dashboard", label: "Dashboard" },
@@ -21,6 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [logo, setLogo] = useState<string | null>(null);
   const initial = (user?.email?.address ?? "V").slice(0, 1).toUpperCase();
 
   useEffect(() => {
@@ -30,6 +32,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!ready || !authenticated) return;
+    api<{ merchant: { logo?: string | null } }>("/api/me")
+      .then((d) => setLogo(d.merchant.logo ?? null))
+      .catch(() => undefined);
+  }, [ready, authenticated]);
+
+  useEffect(() => {
+    function onLogo(e: Event) {
+      const detail = (e as CustomEvent<string | null>).detail;
+      setLogo(detail ?? null);
+    }
+    window.addEventListener("vb-merchant-logo", onLogo);
+    return () => window.removeEventListener("vb-merchant-logo", onLogo);
+  }, []);
 
   if (!ready || !authenticated) {
     return (
@@ -67,10 +85,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
             <Link
               href="/settings"
-              className="h-9 w-9 rounded-full bg-purple text-white text-sm font-semibold flex items-center justify-center"
+              className="h-9 w-9 rounded-full bg-purple text-white text-sm font-semibold flex items-center justify-center overflow-hidden"
               aria-label="Settings"
             >
-              {initial}
+              {logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logo} alt="" className="h-full w-full object-cover" />
+              ) : (
+                initial
+              )}
             </Link>
           </div>
           <button

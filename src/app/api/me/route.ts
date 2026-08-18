@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
         id: session.merchant.id,
         businessName: session.merchant.businessName,
         businessEmail: session.merchant.businessEmail,
+        logo: session.merchant.logo ?? null,
         walletAddress: session.merchant.walletAddress,
       },
     });
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
       merchant: {
         id: session.merchant.id,
         businessName: session.merchant.businessName,
+        logo: session.merchant.logo ?? null,
         walletAddress: session.merchant.walletAddress,
       },
     });

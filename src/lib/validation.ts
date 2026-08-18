@@ -21,6 +21,10 @@ export const addressSchema = z
   .trim()
   .refine((v) => isAddress(v, { strict: false }), "Invalid wallet address.");
 
+export const sponsorGasSchema = z.object({
+  fromAddress: addressSchema,
+});
+
 export const txHashSchema = z
   .string()
   .trim()
