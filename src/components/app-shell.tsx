@@ -12,7 +12,6 @@ const links = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/invoices", label: "Invoices" },
   { href: "/payments", label: "Payments" },
-  { href: "/customers", label: "Customers" },
   { href: "/analytics", label: "Analytics" },
 ];
 
@@ -43,7 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[#FAF9FF] text-[#17151F]">
       <header className="sticky top-0 z-30 bg-white border-b border-[#E9E4F2]">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
-          <BrandLogo href="/dashboard" size={36} />
+          <BrandLogo href="/dashboard" size={44} />
           <nav className="hidden md:flex items-center gap-1 ml-4">
             {links.map((l) => (
               <Link

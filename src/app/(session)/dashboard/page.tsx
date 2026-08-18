@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { Button, Card, Skeleton, StatusPill } from "@/components/ui";
+import { Button, Card, Skeleton } from "@/components/ui";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
@@ -131,51 +131,7 @@ function DashboardInner() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-[1.4fr_1fr] gap-4">
-        <Card className="p-0 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4">
-            <h2 className="text-lg font-semibold">Recent invoices</h2>
-            <Link href="/invoices" className="text-sm font-medium text-[#6D35F2]">
-              View all
-            </Link>
-          </div>
-          {loading && !error ? (
-            <div className="divide-y divide-[#E9E4F2]">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="grid grid-cols-1 md:grid-cols-[120px_1fr_140px_auto] gap-2 md:gap-3 px-5 py-4">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-40" />
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-6 w-24 rounded-full" />
-                </div>
-              ))}
-            </div>
-          ) : invoices.length === 0 ? (
-            <p className="px-5 pb-5 text-[#747180] text-sm">No invoices yet.</p>
-          ) : (
-            <div className="divide-y divide-[#E9E4F2]">
-              <div className="hidden md:grid grid-cols-[120px_1fr_140px_auto] gap-3 px-5 py-2 text-xs font-semibold text-[#747180]">
-                <span>Invoice</span>
-                <span>Customer</span>
-                <span>Amount</span>
-                <span>Status</span>
-              </div>
-              {invoices.map((inv) => (
-                <Link
-                  key={inv.id}
-                  href={`/invoices/${inv.id}`}
-                  className="grid grid-cols-1 md:grid-cols-[120px_1fr_140px_auto] gap-1 md:gap-3 px-5 py-3.5 hover:bg-[#FAF9FF]"
-                >
-                  <span className="font-semibold">{inv.invoiceNumber}</span>
-                  <span className="text-[#747180] truncate">{inv.customerName}</span>
-                  <span className="font-semibold">{verseLabel(inv.amountBaseUnits)}</span>
-                  <StatusPill status={inv.status} />
-                </Link>
-              ))}
-            </div>
-          )}
-        </Card>
-
+      <div className="grid gap-4">
         <Card>
           <h2 className="text-lg font-semibold">On-chain activity</h2>
           <p className="text-sm text-[#747180] mt-1 mb-4">Recent verified payments</p>

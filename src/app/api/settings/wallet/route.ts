@@ -9,7 +9,7 @@ import { getChainConfig } from "@/lib/chain";
 import { createPublicClient, http, type Address } from "viem";
 import { polygon } from "viem/chains";
 import { erc20Abi } from "@/lib/erc20";
-import { displayAmount } from "@/lib/present";
+import { formatAmountRounded, parseBaseUnits } from "@/lib/amounts";
 import { logger } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
@@ -57,8 +57,8 @@ export async function GET(req: NextRequest) {
       },
       verseBaseUnits,
       polBaseUnits,
-      verseDisplay: verseBaseUnits ? displayAmount(verseBaseUnits, cfg.tokenDecimals) : null,
-      polDisplay: polBaseUnits ? displayAmount(polBaseUnits, 18) : null,
+      verseDisplay: verseBaseUnits ? formatAmountRounded(parseBaseUnits(verseBaseUnits), cfg.tokenDecimals) : null,
+      polDisplay: polBaseUnits ? formatAmountRounded(parseBaseUnits(polBaseUnits), 18) : null,
       balancesReachable: verseBaseUnits !== null,
     });
   } catch (err) {

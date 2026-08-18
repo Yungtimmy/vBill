@@ -28,7 +28,7 @@ VerseBill never holds customer funds and never stores private keys.
 
 - Email OTP + optional external wallet via Privy
 - Embedded EVM wallet on login (no seed phrase prompt)
-- Merchant dashboard, invoices, customers, settings
+- Merchant dashboard, invoices, payments, settings
 - Human invoice numbers (`VB-1001`) plus unguessable public IDs
 - Public payment page with destination, token, network, amount always visible
 - QR code of the payment URL (not a raw address)
@@ -63,7 +63,7 @@ VerseBill never holds customer funds and never stores private keys.
 ```
 Next.js App Router
   ├─ Public: /  /pay/[publicId]  /verify/[publicId]
-  ├─ Merchant: /dashboard  /invoices  /customers  /settings
+  ├─ Merchant: /dashboard  /invoices  /payments  /settings
   └─ API: Zod-validated route handlers
 
 Supabase Postgres + Prisma

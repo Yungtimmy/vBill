@@ -46,6 +46,21 @@ export function formatVerseAmount(baseUnits: bigint, decimals: number): string {
   return formatUnits(baseUnits, decimals);
 }
 
+export function formatAmountRounded(
+  baseUnits: bigint,
+  decimals: number,
+  maxFractionDigits = 2,
+): string {
+  if (baseUnits < 0n) {
+    throw new AmountError("Amount cannot be negative.");
+  }
+  const formatted = formatUnits(baseUnits, decimals);
+  if (!formatted.includes(".")) return formatted;
+  const [whole, frac] = formatted.split(".");
+  const trimmed = frac.slice(0, maxFractionDigits).replace(/0+$/, "");
+  return trimmed ? `${whole}.${trimmed}` : whole;
+}
+
 export function parseBaseUnits(raw: string): bigint {
   if (!/^\d+$/.test(raw)) {
     throw new AmountError("Base units must be an unsigned integer string.");
