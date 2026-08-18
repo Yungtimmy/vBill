@@ -175,6 +175,13 @@ export async function publishInvoice(merchantId: string, invoiceId: string, user
 
 export async function cancelInvoice(merchantId: string, invoiceId: string, userId: string) {
   const invoice = await getOwnedInvoice(merchantId, invoiceId);
+  if (invoice.status === "PAID" || invoice.status === "OVERPAID" || invoice.status === "CANCELLED") {
+    throw new AppError(
+      "CANCEL_NOT_ALLOWED",
+      "This invoice can't be cancelled in its current state.",
+      409,
+    );
+  }
   assertTransition(invoice.status, "CANCELLED");
   const updated = await prisma.invoice.update({
     where: { id: invoice.id },

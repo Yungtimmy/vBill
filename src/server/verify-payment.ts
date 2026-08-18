@@ -155,6 +155,29 @@ async function confirmInTx(
   relation: "exact" | "under" | "over",
 ): Promise<VerifyOutcome> {
   const invoice = await tx.invoice.findUniqueOrThrow({ where: { id: payment.invoiceId } });
+  if (invoice.status === "CANCELLED") {
+    // Invoice was cancelled after the payment was submitted. Record the
+    // confirmed on-chain payment but keep the invoice cancelled.
+    const updatedPayment = await tx.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: "CONFIRMED",
+        verifiedAt: new Date(),
+        rejectReason: null,
+      },
+    });
+    await writeAudit({
+      invoiceId: invoice.id,
+      event: "PAYMENT_VERIFIED",
+      metadata: {
+        paymentId: payment.id,
+        txHash: payment.txHash,
+        relation,
+        invoiceStatus: "CANCELLED",
+      },
+    });
+    return { payment: updatedPayment, invoiceStatus: "CANCELLED" };
+  }
   assertTransition(invoice.status, invoiceStatus);
 
   const updatedPayment = await tx.payment.update({
