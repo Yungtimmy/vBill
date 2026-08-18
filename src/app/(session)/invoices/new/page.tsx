@@ -30,7 +30,7 @@ function NewInvoiceInner() {
   const [customerEmail, setCustomerEmail] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
-  const [items, setItems] = useState<Line[]>([{ description: "", quantity: "1", unitPrice: "" }]);
+  const [items, setItems] = useState<Line[]>([{ description: "", quantity: "", unitPrice: "" }]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -81,7 +81,7 @@ function NewInvoiceInner() {
                 {items.map((item, i) => (
                   <div key={i} className="rounded-2xl border border-[#E9E4F2] p-3 space-y-2">
                     <Input
-                      placeholder="Website design"
+                      placeholder="Item"
                       value={item.description}
                       onChange={(e) => {
                         const next = [...items];
@@ -91,7 +91,7 @@ function NewInvoiceInner() {
                     />
                     <div className="grid grid-cols-2 gap-2">
                       <Input
-                        placeholder="Qty"
+                        placeholder="No. of items"
                         value={item.quantity}
                         onChange={(e) => {
                           const next = [...items];
@@ -99,22 +99,28 @@ function NewInvoiceInner() {
                           setItems(next);
                         }}
                       />
-                      <Input
-                        placeholder="VERSE"
-                        value={item.unitPrice}
-                        onChange={(e) => {
-                          const next = [...items];
-                          next[i] = { ...item, unitPrice: e.target.value };
-                          setItems(next);
-                        }}
-                      />
+                      <div className="relative">
+                        <Input
+                          placeholder="0.00"
+                          className="pr-14"
+                          value={item.unitPrice}
+                          onChange={(e) => {
+                            const next = [...items];
+                            next[i] = { ...item, unitPrice: e.target.value };
+                            setItems(next);
+                          }}
+                        />
+                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#747180] pointer-events-none select-none">
+                          VERSE
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
                 <button
                   type="button"
                   className="text-sm font-medium text-[#6D35F2]"
-                  onClick={() => setItems([...items, { description: "", quantity: "1", unitPrice: "" }])}
+                  onClick={() => setItems([...items, { description: "", quantity: "", unitPrice: "" }])}
                 >
                   + Add item
                 </button>
