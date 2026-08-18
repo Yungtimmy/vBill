@@ -7,13 +7,14 @@ import { writeAudit } from "@/server/audit";
 
 export async function updateProfile(
   merchant: Merchant,
-  input: { businessName?: string; businessEmail?: string },
+  input: { businessName?: string; businessEmail?: string; logo?: string },
 ) {
   return prisma.merchant.update({
     where: { id: merchant.id },
     data: {
       ...(input.businessName ? { businessName: input.businessName } : {}),
       ...(input.businessEmail !== undefined ? { businessEmail: input.businessEmail ?? null } : {}),
+      ...(input.logo !== undefined ? { logo: input.logo || null } : {}),
     },
   });
 }

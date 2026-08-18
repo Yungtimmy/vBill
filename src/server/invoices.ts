@@ -206,7 +206,7 @@ export async function listInvoices(
   const take = opts.take ?? 20;
   const status = !opts.status || opts.status === "ALL" ? undefined : opts.status;
   const rows = await prisma.invoice.findMany({
-    where: { merchantId, ...(status ? { status } : {}) },
+    where: { merchantId, status: { not: "CANCELLED" }, ...(status ? { status } : {}) },
     orderBy: { createdAt: "desc" },
     take: take + 1,
     ...(opts.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
@@ -227,7 +227,9 @@ export async function getPublicInvoice(publicId: string) {
     },
   });
   if (!invoice) throw new NotFoundError("Invoice not found.");
-  if (invoice.status === "DRAFT") throw new NotFoundError("Invoice not found.");
+  if (invoice.status === "DRAFT" || invoice.status === "CANCELLED") {
+    throw new NotFoundError("Invoice not found.");
+  }
   return maybeExpire(withItems(invoice));
 }
 

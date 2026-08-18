@@ -83,6 +83,12 @@ export const updateSettingsSchema = z
   .object({
     businessName: z.string().trim().min(1).max(MAX_NAME).optional(),
     businessEmail: emailSchema,
+    logo: z
+      .string()
+      .trim()
+      .max(600_000, "Logo image is too large.")
+      .refine((v) => v === "" || v.startsWith("data:image/"), "Logo must be an image file.")
+      .optional(),
   })
   .strict();
 

@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
       settings: {
         businessName: session.merchant.businessName,
         businessEmail: session.merchant.businessEmail,
+        logo: session.merchant.logo ?? null,
         walletAddress: session.merchant.walletAddress,
       },
     });
@@ -31,6 +32,7 @@ export async function PATCH(req: NextRequest) {
     const merchant = await updateProfile(session.merchant, {
       businessName: body.businessName,
       businessEmail: body.businessEmail,
+      logo: body.logo,
     });
     return json({ requestId, settings: merchant });
   } catch (err) {

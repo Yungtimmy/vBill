@@ -51,6 +51,7 @@ model Merchant {
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   businessName  String     @default("")
   businessEmail String?
+  logo          String?
   walletAddress String
   invoiceSeq    Int        @default(0)
   createdAt     DateTime   @default(now())
