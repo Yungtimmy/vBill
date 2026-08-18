@@ -14,6 +14,11 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+// CSP nonce (set in middleware) is injected into inline scripts at render
+// time. Static prerendering cannot carry a per-request nonce, which blocks
+// Next's bootstrap scripts and blanks the page - keep pages server-rendered.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "VerseBill",
   description: "Invoices that prove payment on-chain.",
