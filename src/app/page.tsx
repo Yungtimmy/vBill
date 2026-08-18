@@ -1,20 +1,9 @@
 import Link from "next/link";
-import { BrandLogo } from "@/components/brand-logo";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { PublicPage } from "@/components/public-page";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-page-gradient text-ink">
-      <header className="px-5 py-5 flex items-center justify-between max-w-[1200px] mx-auto">
-        <BrandLogo href="/" size={36} />
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <Link href="/login" className="text-sm font-medium text-muted hover:text-ink">
-            Sign in
-          </Link>
-        </div>
-      </header>
-
+    <PublicPage>
       <section className="px-5 pt-10 pb-20 max-w-[1200px] mx-auto">
         <p className="text-sm font-medium text-purple">Invoices that prove payment</p>
         <h1 className="mt-3 text-[32px] md:text-5xl font-bold tracking-tight max-w-2xl leading-[1.15]">
@@ -27,15 +16,15 @@ export default function HomePage() {
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
           <Link
             href="/login"
-            className="inline-flex justify-center px-5 py-3.5 bg-purple text-white text-sm font-semibold rounded-2xl hover:scale-95 transition-transform"
+            className="inline-flex justify-center px-5 py-3.5 bg-purple text-white text-sm font-semibold rounded-2xl hover:bg-[#5B28D9]"
           >
             Create an invoice
           </Link>
           <Link
-            href="/login"
-            className="inline-flex justify-center px-5 py-3.5 bg-card border border-line text-sm font-semibold rounded-2xl hover:scale-95 transition-transform"
+            href="/docs"
+            className="inline-flex justify-center px-5 py-3.5 bg-card border border-line text-sm font-semibold rounded-2xl hover:bg-lavender"
           >
-            Open dashboard
+            Read Documentation →
           </Link>
         </div>
       </section>
@@ -58,7 +47,10 @@ export default function HomePage() {
             </p>
           </li>
         </ol>
+        <Link href="/how-it-works" className="inline-flex mt-8 text-sm font-medium text-purple hover:underline">
+          See the full flow →
+        </Link>
       </section>
-    </div>
+    </PublicPage>
   );
 }

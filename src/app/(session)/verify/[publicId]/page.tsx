@@ -86,7 +86,6 @@ export default function VerifyPage() {
             txHash={payment?.txHash}
             explorerUrl={payment?.explorerUrl}
             tokenAddress={proof.tokenAddress}
-            animate={proof.verifiedOnChain}
           />
         </div>
         {payment && (

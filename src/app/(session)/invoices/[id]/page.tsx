@@ -188,7 +188,6 @@ function InvoiceDetailInner() {
             txHash={paid?.txHash}
             explorerUrl={explorer}
             tokenAddress={invoice.tokenAddress}
-            animate={Boolean(verified && paid)}
           />
 
           <div className="flex flex-wrap gap-3 no-print">

@@ -17,7 +17,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center px-5 py-3.5 text-sm font-semibold rounded-2xl transition-transform duration-150 hover:scale-95 active:scale-90 disabled:opacity-40 disabled:pointer-events-none",
+        "inline-flex items-center justify-center px-5 py-3.5 text-sm font-semibold rounded-2xl transition-colors duration-100 active:opacity-90 disabled:opacity-40 disabled:pointer-events-none",
         styles,
         className,
       )}
@@ -68,7 +68,7 @@ export function FieldError({ children }: { children?: React.ReactNode }) {
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-xl bg-line", className)} aria-hidden />;
+  return <div className={cn("rounded-xl bg-line", className)} aria-hidden />;
 }
 
 export function Spinner({ className }: { className?: string }) {

@@ -63,7 +63,7 @@ function NewInvoiceInner() {
 
   return (
     <AppShell>
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-xl mx-auto pb-28">
         <h1 className="text-[28px] font-bold tracking-tight mb-6">Create invoice</h1>
         <Card className="p-6 sm:p-8">
           <form className="space-y-6">
@@ -134,21 +134,46 @@ function NewInvoiceInner() {
               <Label>Notes</Label>
               <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes" />
             </div>
-            <div className="flex items-baseline justify-between border-t border-line pt-5">
-              <span className="text-sm font-medium text-muted">Total</span>
-              <span className="text-2xl font-bold">{total > 0 ? `${Number(total.toFixed(8))} VERSE` : "—"}</span>
-            </div>
             {error && <p className="text-error">{error}</p>}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button type="button" disabled={busy} onClick={(e) => onSubmit(e, true)} className="flex-1">
-                Create invoice
+          </form>
+        </Card>
+      </div>
+
+      <div className="sticky bottom-0 z-20 border-t border-line bg-card">
+        <div className="max-w-xl mx-auto px-4 sm:px-0 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs text-muted">Total</p>
+              <p className="text-xl font-bold truncate">{total > 0 ? `${Number(total.toFixed(8))} VERSE` : "—"}</p>
+            </div>
+            <div className="hidden sm:flex items-center gap-2">
+              <Button type="button" variant="ghost" disabled={busy} onClick={() => router.push("/invoices")}>
+                Cancel
               </Button>
               <Button type="button" variant="ghost" disabled={busy} onClick={(e) => onSubmit(e, false)}>
                 Save draft
               </Button>
+              <Button type="button" disabled={busy} onClick={(e) => onSubmit(e, true)}>
+                Create invoice
+              </Button>
             </div>
-          </form>
-        </Card>
+            <button
+              type="button"
+              className="sm:hidden text-sm text-muted"
+              onClick={() => router.push("/invoices")}
+            >
+              Cancel
+            </button>
+          </div>
+          <div className="flex sm:hidden gap-2 mt-3">
+            <Button type="button" variant="ghost" className="flex-1" disabled={busy} onClick={(e) => onSubmit(e, false)}>
+              Save draft
+            </Button>
+            <Button type="button" className="flex-1" disabled={busy} onClick={(e) => onSubmit(e, true)}>
+              Create invoice
+            </Button>
+          </div>
+        </div>
       </div>
     </AppShell>
   );

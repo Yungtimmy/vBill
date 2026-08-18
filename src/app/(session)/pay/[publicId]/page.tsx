@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { createWalletClient, custom, type Hex } from "viem";
 import { LoaderCircle } from "lucide-react";
-import { Button, Check, Skeleton } from "@/components/ui";
+import { Button, Check, Skeleton, Spinner } from "@/components/ui";
 import { OnChainProof } from "@/components/on-chain-proof";
 import { PayCard, PublicFrame } from "@/components/public-frame";
 import { erc20Abi } from "@/lib/erc20";
@@ -149,7 +149,7 @@ export default function PayPage() {
   if (phase === "confirmed") {
     return (
       <PublicFrame>
-        <PayCard className="max-w-md mx-auto text-center">
+        <PayCard className="fade-in max-w-md mx-auto text-center">
           <div
             className="mx-auto h-16 w-16 rounded-full bg-success-soft text-success text-3xl font-bold flex items-center justify-center"
             style={{ boxShadow: "0 0 0 8px rgba(109,53,242,0.06), 0 0 40px rgba(22,139,255,0.18)" }}
@@ -174,7 +174,6 @@ export default function PayPage() {
               txHash={hash}
               explorerUrl={explorer}
               tokenAddress={data.invoice.tokenAddress}
-              animate
             />
           </div>
           <div className="mt-6 flex flex-col gap-3">
@@ -222,20 +221,21 @@ export default function PayPage() {
   if (phase === "pending") {
     return (
       <PublicFrame>
-        <PayCard className="max-w-md mx-auto text-center">
-          <p className="text-xl font-semibold">Payment submitted</p>
-          <p className="mt-3 text-sm text-muted">
-            We&apos;re waiting for confirmation from the Polygon network.
-          </p>
-          {hash && (
-            <>
-              <p className="mt-6 text-sm text-muted">Transaction</p>
-              <p className="font-mono text-sm mt-1">{shortenHash(hash)}</p>
-            </>
-          )}
-          <p className="mt-6 text-sm font-medium text-warning">Waiting for confirmation</p>
-          <p className="mt-3 text-sm text-muted">
-            We keep checking automatically - this page will update itself once Polygon confirms the transaction.
+        <PayCard className="max-w-md mx-auto">
+          <p className="text-center text-xl font-semibold">Payment submitted</p>
+          <p className="mt-2 text-center text-sm text-muted">Verifying your transaction on Polygon.</p>
+          {hash && <p className="mt-4 text-center font-mono text-sm text-muted">{shortenHash(hash)}</p>}
+          <p className="mt-6 text-xs font-semibold tracking-wide text-muted uppercase">Status</p>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li className="flex items-center gap-2 text-ink">
+              <span className="text-success">✓</span> Transaction submitted
+            </li>
+            <li className="flex items-center gap-2 text-muted">
+              <Spinner className="text-purple" /> Waiting for confirmation
+            </li>
+          </ul>
+          <p className="mt-5 text-sm text-muted">
+            This page updates automatically once Polygon confirms the transaction.
           </p>
         </PayCard>
       </PublicFrame>
@@ -265,42 +265,51 @@ export default function PayPage() {
   if (phase === "confirm") {
     return (
       <PublicFrame>
-        <PayCard className="max-w-md mx-auto">
-          <p className="text-center text-sm font-medium text-muted">Confirm payment</p>
-          <p className="text-center mt-6 text-sm text-muted">You&apos;re paying</p>
-          <p className="text-center mt-2 text-[32px] font-bold tracking-tight">
-            {data.invoice.amountDisplay} VERSE
-          </p>
-          <div className="mt-8 space-y-4 text-sm">
-            <div>
-              <p className="text-muted">To</p>
-              <p className="mt-1 font-semibold">{data.invoice.businessName}</p>
-              <p className="font-mono text-sm break-all mt-1">{data.invoice.merchantWallet}</p>
+        <div className="max-w-md mx-auto pb-24">
+          <PayCard>
+            <p className="text-center text-sm font-medium text-muted">Confirm payment</p>
+            <p className="text-center mt-6 text-sm text-muted">You&apos;re paying</p>
+            <p className="text-center mt-2 text-[32px] font-bold tracking-tight">
+              {data.invoice.amountDisplay} VERSE
+            </p>
+            <div className="mt-8 space-y-4 text-sm">
+              <div>
+                <p className="text-muted">To</p>
+                <p className="mt-1 font-semibold">{data.invoice.businessName}</p>
+                <p className="font-mono text-sm break-all mt-1">{data.invoice.merchantWallet}</p>
+              </div>
+              <div>
+                <p className="text-muted">Network</p>
+                <p className="mt-1 font-semibold">Polygon</p>
+              </div>
             </div>
-            <div>
-              <p className="text-muted">Network</p>
-              <p className="mt-1 font-semibold">Polygon</p>
+            <div className="mt-6 space-y-2">
+              <Check>Merchant verified</Check>
+              <Check>Invoice verified</Check>
             </div>
+          </PayCard>
+          {error && <p className="text-error mt-4 text-center">{error}</p>}
+        </div>
+        <div className="sticky bottom-0 z-20 border-t border-line bg-card">
+          <div className="max-w-md mx-auto px-4 py-3">
+            {isPrivyConfigured() ? (
+              <PayActions
+                data={data}
+                publicId={params.publicId}
+                phase={phase}
+                setPhase={setPhase}
+                setError={setError}
+                setSentHash={setSentHash}
+                onReload={load}
+                onVerify={pollForConfirmation}
+                label="Confirm & Pay"
+                className=""
+              />
+            ) : (
+              <p className="text-error text-sm">Wallet payment is unavailable until Privy is configured.</p>
+            )}
           </div>
-          <div className="mt-6 space-y-2">
-            <Check>Merchant verified</Check>
-            <Check>Invoice verified</Check>
-          </div>
-          {isPrivyConfigured() && (
-            <PayActions
-              data={data}
-              publicId={params.publicId}
-              phase={phase}
-              setPhase={setPhase}
-              setError={setError}
-              setSentHash={setSentHash}
-              onReload={load}
-              onVerify={pollForConfirmation}
-              label="Confirm & Pay"
-            />
-          )}
-          {error && <p className="text-error mt-4">{error}</p>}
-        </PayCard>
+        </div>
       </PublicFrame>
     );
   }
@@ -355,6 +364,7 @@ function PayActions({
   onVerify,
   label,
   preview,
+  className,
 }: {
   data: PayPayload;
   publicId: string;
@@ -366,6 +376,7 @@ function PayActions({
   onVerify: (paymentId: string) => Promise<void>;
   label: string;
   preview?: boolean;
+  className?: string;
 }) {
   const { ready, authenticated, login } = usePrivy();
   const { wallets } = useWallets();
@@ -445,7 +456,7 @@ function PayActions({
   }
 
   return (
-    <Button className="w-full mt-6" onClick={start} disabled={!ready || phase === "wallet" || phase === "verifying"}>
+    <Button className={`w-full ${className ?? "mt-6"}`} onClick={start} disabled={!ready || phase === "wallet" || phase === "verifying"}>
       {authenticated ? label : "Continue with email"}
     </Button>
   );

@@ -72,8 +72,18 @@ export function privyHttpOnlyCookiesEnabled(): boolean {
   return (process.env.PRIVY_USE_HTTPONLY_COOKIES ?? "").trim().toLowerCase() === "true";
 }
 
+const PUBLIC_PAGES = new Set([
+  "/about",
+  "/how-it-works",
+  "/faq",
+  "/privacy",
+  "/terms",
+]);
+
 export function isPublicPath(pathname: string): boolean {
   if (pathname === "/" || pathname === "/login" || pathname === "/refresh") return true;
+  if (PUBLIC_PAGES.has(pathname)) return true;
+  if (pathname === "/docs" || pathname.startsWith("/docs/")) return true;
   if (pathname.startsWith("/pay/")) return true;
   if (pathname.startsWith("/verify/")) return true;
   if (pathname.startsWith("/api/")) return true;

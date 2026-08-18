@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { shortenAddress, shortenHash } from "@/lib/addresses";
 
@@ -16,26 +15,12 @@ export function OnChainProof({
   txHash,
   explorerUrl,
   tokenAddress,
-  animate = false,
 }: {
   verified: boolean;
   txHash?: string | null;
   explorerUrl?: string | null;
   tokenAddress?: string | null;
-  animate?: boolean;
 }) {
-  const [shown, setShown] = useState(animate ? 0 : CHECKS.length);
-
-  useEffect(() => {
-    if (!verified || !animate) {
-      setShown(CHECKS.length);
-      return;
-    }
-    setShown(0);
-    const timers = CHECKS.map((_, i) => window.setTimeout(() => setShown(i + 1), 160 * (i + 1)));
-    return () => timers.forEach(clearTimeout);
-  }, [verified, animate]);
-
   if (!verified) {
     return (
       <div className="bg-card border border-line rounded-[22px] p-5">
@@ -47,7 +32,7 @@ export function OnChainProof({
 
   return (
     <div
-      className="rounded-[22px] p-px"
+      className="fade-in rounded-[22px] p-px"
       style={{
         background: "linear-gradient(135deg, rgba(22,139,255,0.35), rgba(109,53,242,0.28), rgba(213,0,249,0.2))",
         boxShadow: "0 16px 40px -24px rgba(109,53,242,0.45)",
@@ -63,9 +48,9 @@ export function OnChainProof({
             </p>
           </div>
         </div>
-        <ul className="mt-5 space-y-2 text-sm">
-          {CHECKS.map((label, i) => (
-            <li key={label} className={i < shown ? "text-ink" : "text-transparent"}>
+        <ul className="mt-5 space-y-2 text-sm text-ink">
+          {CHECKS.map((label) => (
+            <li key={label}>
               <span className="text-success">✓</span> {label}
             </li>
           ))}
