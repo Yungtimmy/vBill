@@ -1,5 +1,6 @@
 import type { Block } from "@/content/docs";
 import { CopyButton } from "@/components/docs/copy-button";
+import { ArchitectureDiagram } from "@/components/docs/architecture-diagram";
 
 function CodeBlock({ lang, title, code }: { lang?: string; title?: string; code: string }) {
   return (
@@ -92,6 +93,8 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
                 {b.text}
               </div>
             );
+          case "architecture-diagram":
+            return <ArchitectureDiagram key={i} />;
           default:
             return null;
         }

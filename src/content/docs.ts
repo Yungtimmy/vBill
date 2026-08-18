@@ -15,7 +15,8 @@ export type Block =
   | { type: "steps"; items: string[] }
   | { type: "check"; items: string[] }
   | { type: "code"; lang?: string; title?: string; code: string }
-  | { type: "callout"; tone?: "info" | "warn"; text: string };
+  | { type: "callout"; tone?: "info" | "warn"; text: string }
+  | { type: "architecture-diagram" };
 
 export type DocItem = { slug: string; title: string };
 export type DocSection = { title: string; items: DocItem[] };
@@ -321,6 +322,7 @@ export const DOC_PAGES: Record<string, DocPage> = {
           "The route returns JSON that the client renders",
         ],
       },
+      { type: "architecture-diagram" },
       {
         type: "callout",
         tone: "info",
