@@ -31,9 +31,21 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 describe("CoinGecko VERSE price service", () => {
-  it("parses a valid contract-address price", async () => {
+  it("parses a public CoinGecko scientific-notation price", async () => {
     const quote = await getVerseUsdQuote({
       now: () => 1_000,
+      fetch: async () =>
+        jsonResponse({
+          [TRUSTED_PRODUCTION_TOKEN.toLowerCase()]: { usd: 2.053e-5 },
+        }),
+    });
+    expect(quote.source).toBe("coingecko");
+    expect(quote.priceUsd.startsWith("0.00002053")).toBe(true);
+  });
+
+  it("parses a valid contract-address price", async () => {
+    const quote = await getVerseUsdQuote({
+      now: () => 2_000,
       fetch: async () =>
         jsonResponse({
           [TRUSTED_PRODUCTION_TOKEN.toLowerCase()]: { usd: 0.000018 },

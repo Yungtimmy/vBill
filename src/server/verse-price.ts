@@ -11,6 +11,9 @@ import {
   parseUsdAmount,
 } from "@/lib/verse-min";
 
+const ETHEREUM_VERSE = "0x249ca82617ec3dfb2589c4c17ab7ec9765350a18";
+const PUBLIC_BASE = "https://api.coingecko.com/api/v3";
+
 export type VerseUsdQuote = {
   token: "VERSE";
   tokenAddress: string;
@@ -38,8 +41,8 @@ export type VersePriceDeps = {
 };
 
 function cacheTtlMs(): number {
-  const raw = Number.parseInt(process.env.VERSE_PRICE_CACHE_MS ?? "45000", 10);
-  if (!Number.isFinite(raw) || raw < 5_000 || raw > 300_000) return 45_000;
+  const raw = Number.parseInt(process.env.VERSE_PRICE_CACHE_MS ?? "60000", 10);
+  if (!Number.isFinite(raw) || raw < 5_000 || raw > 300_000) return 60_000;
   return raw;
 }
 
@@ -49,30 +52,13 @@ function minimumUsd(): string {
   return raw;
 }
 
-function apiBase(): string {
-  const configured = (process.env.COINGECKO_API_BASE ?? "").trim().replace(/\/$/, "");
-  if (configured) return configured;
+function publicHeaders(): Headers {
+  const headers = new Headers({
+    accept: "application/json",
+    "user-agent": "VerseBill/1.0",
+  });
   const key = (process.env.COINGECKO_API_KEY ?? "").trim();
-  if (key && !key.startsWith("CG-") && process.env.COINGECKO_API_TYPE !== "demo") {
-    return "https://pro-api.coingecko.com/api/v3";
-  }
-  return "https://api.coingecko.com/api/v3";
-}
-
-function platformId(): string {
-  return (process.env.COINGECKO_ASSET_PLATFORM ?? "polygon-pos").trim() || "polygon-pos";
-}
-
-function authHeaders(): Headers {
-  const headers = new Headers({ accept: "application/json" });
-  const key = (process.env.COINGECKO_API_KEY ?? "").trim();
-  if (!key) return headers;
-  const base = apiBase();
-  if (base.includes("pro-api.coingecko.com") || process.env.COINGECKO_API_TYPE === "pro") {
-    headers.set("x-cg-pro-api-key", key);
-  } else {
-    headers.set("x-cg-demo-api-key", key);
-  }
+  if (key) headers.set("x-cg-demo-api-key", key);
   return headers;
 }
 
@@ -106,43 +92,71 @@ function buildQuote(priceUsd: string, fetchedAt: Date): VerseUsdQuote {
   };
 }
 
-async function fetchFromCoinGecko(deps: VersePriceDeps): Promise<string> {
-  const address = TRUSTED_PRODUCTION_TOKEN.toLowerCase();
-  const url = `${apiBase()}/simple/token_price/${platformId()}?contract_addresses=${address}&vs_currencies=usd`;
-  const fetchFn = deps.fetch ?? fetch;
-  let res: Response;
+function priceFromTokenMap(body: unknown, address: string): string | null {
+  if (!body || typeof body !== "object") return null;
+  const row = (body as Record<string, unknown>)[address.toLowerCase()];
+  if (!row || typeof row !== "object") return null;
   try {
-    res = await fetchFn(url, {
-      headers: authHeaders(),
-      cache: "no-store",
-      signal: AbortSignal.timeout(8_000),
-    });
+    return jsonNumberToDecimalString((row as Record<string, unknown>).usd);
   } catch {
-    throw priceUnavailable();
+    return null;
   }
-  if (!res.ok) {
-    logger.warn("coingecko_http", { status: res.status });
-    throw priceUnavailable();
-  }
-  let body: unknown;
+}
+
+async function getJson(fetchFn: typeof fetch, url: string): Promise<{ status: number; body: unknown }> {
+  const res = await fetchFn(url, {
+    headers: publicHeaders(),
+    cache: "no-store",
+    signal: AbortSignal.timeout(8_000),
+  });
+  let body: unknown = null;
   try {
     body = await res.json();
   } catch {
-    throw priceUnavailable();
+    body = null;
   }
-  if (!body || typeof body !== "object") {
-    throw priceUnavailable();
+  return { status: res.status, body };
+}
+
+async function fetchFromCoinGecko(deps: VersePriceDeps): Promise<string> {
+  const fetchFn = deps.fetch ?? fetch;
+  const polygon = TRUSTED_PRODUCTION_TOKEN.toLowerCase();
+  const ethereum = ETHEREUM_VERSE.toLowerCase();
+  const urls = [
+    `${PUBLIC_BASE}/simple/token_price/polygon-pos?contract_addresses=${polygon}&vs_currencies=usd`,
+    `${PUBLIC_BASE}/simple/token_price/ethereum?contract_addresses=${ethereum}&vs_currencies=usd`,
+  ];
+
+  let rateLimited = false;
+  for (const url of urls) {
+    let status: number;
+    let body: unknown;
+    try {
+      const got = await getJson(fetchFn, url);
+      status = got.status;
+      body = got.body;
+    } catch {
+      continue;
+    }
+    if (status === 429) {
+      rateLimited = true;
+      continue;
+    }
+    if (status < 200 || status >= 300) {
+      logger.warn("coingecko_http", { status });
+      continue;
+    }
+    const fromPolygon = priceFromTokenMap(body, polygon);
+    if (fromPolygon) return fromPolygon;
+    const fromEth = priceFromTokenMap(body, ethereum);
+    if (fromEth) return fromEth;
   }
-  const row = (body as Record<string, unknown>)[address];
-  if (!row || typeof row !== "object") {
-    throw priceUnavailable();
+
+  if (rateLimited && cache) {
+    logger.warn("coingecko_rate_limited_using_cache");
+    return cache.quote.priceUsd;
   }
-  const usd = (row as Record<string, unknown>).usd;
-  try {
-    return jsonNumberToDecimalString(usd);
-  } catch {
-    throw priceUnavailable();
-  }
+  throw priceUnavailable();
 }
 
 export async function getVerseUsdQuote(deps: VersePriceDeps = {}): Promise<VerseUsdQuote> {
@@ -168,4 +182,3 @@ export function quoteToPublic(quote: VerseUsdQuote) {
     source: quote.source,
   };
 }
-

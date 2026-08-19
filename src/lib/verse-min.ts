@@ -96,9 +96,10 @@ export function formatUsdFromScaled(scaled: bigint, maxFraction = 8): string {
 }
 
 export function jsonNumberToDecimalString(n: unknown): string {
-  if (typeof n !== "number" || !Number.isFinite(n) || n <= 0 || n > 1_000_000) {
+  const value = typeof n === "number" ? n : typeof n === "string" ? Number(n) : Number.NaN;
+  if (!Number.isFinite(value) || value <= 0 || value > 1_000_000) {
     throw new AmountError("Invalid market price.");
   }
-  const fixed = n.toFixed(PRICE_DECIMALS);
+  const fixed = value.toFixed(PRICE_DECIMALS);
   return fixed.replace(/\.?0+$/, "") || "0";
 }

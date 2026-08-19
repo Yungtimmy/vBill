@@ -21,6 +21,7 @@ describe("VERSE $1 minimum math", () => {
 
   it("treats 0.000018 as the working price", () => {
     expect(jsonNumberToDecimalString(0.000018)).toBe("0.000018");
+    expect(jsonNumberToDecimalString(2.053e-5).startsWith("0.00002053")).toBe(true);
     expect(parsePriceUsd(PRICE)).toBe(price);
   });
 
