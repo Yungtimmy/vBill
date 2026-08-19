@@ -1,5 +1,7 @@
 import type { Invoice, InvoiceStatus, Merchant, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { getAddress } from "viem";
+import { formatUnits } from "viem";
 import { getChainConfig } from "@/lib/chain";
 import { formatInvoiceNumber, newPublicId } from "@/lib/crypto-ids";
 import { multiplyQuantity, parseQuantity, parseVerseAmount } from "@/lib/amounts";
@@ -8,6 +10,8 @@ import { isExpired, nowUtc } from "@/lib/time";
 import { AppError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import { writeAudit } from "@/server/audit";
 import { trackEvent } from "@/server/analytics";
+import { getVerseUsdQuote, type VerseUsdQuote } from "@/server/verse-price";
+import { meetsMinimumUsd, usdValueScaled } from "@/lib/verse-min";
 import type { z } from "zod";
 import type { createInvoiceSchema, updateDraftInvoiceSchema } from "@/lib/validation";
 
@@ -59,17 +63,44 @@ function readItems(value: Prisma.JsonValue | null | undefined): LineItem[] {
   });
 }
 
+export function assertConfiguredVerse(cfg: ReturnType<typeof getChainConfig>, input: { tokenAddress?: string; chainId?: number }) {
+  if (input.tokenAddress && getAddress(input.tokenAddress) !== cfg.tokenAddress) {
+    throw new AppError("INVALID_TOKEN", "Only the configured VERSE token is supported.", 400);
+  }
+  if (input.chainId !== undefined && input.chainId !== cfg.chainId) {
+    throw new AppError("INVALID_NETWORK", "Invoices must use the configured Polygon network.", 400);
+  }
+}
+
+function belowMinimumMessage(quote: VerseUsdQuote): string {
+  return `Minimum invoice amount is $${quote.minimumUsd} USD equivalent of VERSE. Current price: $${quote.priceUsd} / VERSE. Minimum: ~${quote.minimumVerse} VERSE.`;
+}
+
+export async function assertMinimumVerse(amountBaseUnits: bigint, cfg: ReturnType<typeof getChainConfig>) {
+  const quote = await getVerseUsdQuote();
+  if (!meetsMinimumUsd(amountBaseUnits, quote.priceScaled, quote.minimumUsdScaled, cfg.tokenDecimals)) {
+    throw new AppError("BELOW_MINIMUM", belowMinimumMessage(quote), 400);
+  }
+  const usdScaled = usdValueScaled(amountBaseUnits, quote.priceScaled, cfg.tokenDecimals);
+  return {
+    quote,
+    usdValue: formatUnits(usdScaled, 18),
+  };
+}
+
 export async function createInvoice(merchant: Merchant, userId: string, input: CreateInput) {
   const cfg = getChainConfig();
   if (!merchant.walletAddress) {
     throw new AppError("NO_WALLET", "Set a payment wallet before creating invoices.", 409);
   }
+  assertConfiguredVerse(cfg, input);
 
   const lines = lineItems(input.items, cfg.tokenDecimals);
   const amount = lines.reduce((s, l) => s + l.amount, 0n);
   if (amount <= 0n) {
     throw new AppError("INVALID_AMOUNT", "Invoice total must be greater than zero.", 400);
   }
+  const priced = await assertMinimumVerse(amount, cfg);
 
   const dueDate = input.dueDate ? new Date(input.dueDate) : null;
   if (dueDate && Number.isNaN(dueDate.getTime())) {
@@ -102,6 +133,11 @@ export async function createInvoice(merchant: Merchant, userId: string, input: C
         dueDate,
         notes: input.notes ?? null,
         lineItems: storedItems(lines),
+        priceUsdAtCreation: priced.quote.priceUsd,
+        usdValueAtCreation: priced.usdValue,
+        minimumUsdAtCreation: priced.quote.minimumUsd,
+        priceSource: priced.quote.source,
+        priceFetchedAt: priced.quote.fetchedAt,
       },
       include: { merchant: true, payments: true },
     });
@@ -132,6 +168,7 @@ export async function updateDraft(
   }
 
   const cfg = getChainConfig();
+  assertConfiguredVerse(cfg, {});
   const data: Prisma.InvoiceUpdateInput = {};
   if (input.customerName) data.customerName = input.customerName;
   if (input.customerEmail !== undefined) data.customerEmail = input.customerEmail ?? null;
@@ -143,10 +180,16 @@ export async function updateDraft(
   if (input.items) {
     const lines = lineItems(input.items, cfg.tokenDecimals);
     const amount = lines.reduce((s, l) => s + l.amount, 0n);
+    const priced = await assertMinimumVerse(amount, cfg);
     data.amountBaseUnits = amount.toString();
     data.tokenAddress = cfg.tokenAddress;
     data.chainId = cfg.chainId;
     data.lineItems = storedItems(lines);
+    data.priceUsdAtCreation = priced.quote.priceUsd;
+    data.usdValueAtCreation = priced.usdValue;
+    data.minimumUsdAtCreation = priced.quote.minimumUsd;
+    data.priceSource = priced.quote.source;
+    data.priceFetchedAt = priced.quote.fetchedAt;
   }
 
   await prisma.invoice.update({ where: { id: invoice.id }, data });
@@ -159,6 +202,8 @@ export async function publishInvoice(merchantId: string, invoiceId: string, user
   if (!invoice.items.length) {
     throw new AppError("INVALID", "Add at least one line item.", 400);
   }
+  const cfg = getChainConfig();
+  await assertMinimumVerse(BigInt(invoice.amountBaseUnits), cfg);
   const updated = await prisma.invoice.update({
     where: { id: invoice.id },
     data: { status: "PENDING" },

@@ -56,6 +56,8 @@ export const createInvoiceSchema = z
     dueDate: z.string().datetime().optional().or(z.literal("").transform(() => undefined)),
     notes: z.string().trim().max(MAX_NOTE).optional(),
     publish: z.boolean().optional(),
+    tokenAddress: addressSchema.optional(),
+    chainId: z.number().int().positive().optional(),
   })
   .strict();
 

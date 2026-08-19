@@ -27,6 +27,17 @@ describe("validation", () => {
     expect(parsed.success).toBe(false);
   });
 
+  it("rejects a client-supplied market price", () => {
+    expect(
+      createInvoiceSchema.safeParse({
+        customerName: "Ada",
+        items: [{ description: "Work", quantity: "1", unitPrice: "10" }],
+        priceUsd: "0.000018",
+        usdValue: "999",
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejects zero and negative amounts", () => {
     expect(
       createInvoiceSchema.safeParse({

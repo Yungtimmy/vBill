@@ -1,26 +1,38 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatUnits } from "viem";
 import { AppShell } from "@/components/app-shell";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
 import { MissingConfig } from "@/components/missing-config";
+import { parseQuantity, parseVerseAmount } from "@/lib/amounts";
+import {
+  formatUsdFromScaled,
+  meetsMinimumUsd,
+  parsePriceUsd,
+  parseUsdAmount,
+  usdValueScaled,
+  verseBaseForUsd,
+} from "@/lib/verse-min";
 
 type Line = { description: string; quantity: string; unitPrice: string };
+
+type VerseQuote = {
+  symbol: string;
+  priceUsd: string;
+  minimumUsd: string;
+  minimumVerse: string;
+  updatedAt: string;
+  source: string;
+};
 
 export default function NewInvoicePage() {
   if (!isPrivyConfigured()) return <MissingConfig feature="Invoice creation" />;
   return <NewInvoiceInner />;
-}
-
-function lineAmount(item: Line): number {
-  const q = Number(item.quantity);
-  const p = Number(item.unitPrice);
-  if (!Number.isFinite(q) || !Number.isFinite(p)) return 0;
-  return q * p;
 }
 
 function combineDue(dueDate: string, dueTime: string): string | undefined {
@@ -38,15 +50,90 @@ function NewInvoiceInner() {
   const [dueDate, setDueDate] = useState("");
   const [dueTime, setDueTime] = useState("");
   const [notes, setNotes] = useState("");
-  const [items, setItems] = useState<Line[]>([{ description: "", quantity: "", unitPrice: "" }]);
+  const [items, setItems] = useState<Line[]>([{ description: "", quantity: "1", unitPrice: "" }]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [quote, setQuote] = useState<VerseQuote | null>(null);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
-  const total = useMemo(() => items.reduce((sum, item) => sum + lineAmount(item), 0), [items]);
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    if (!readyOnServer) return;
+    let cancelled = false;
+    async function loadQuote() {
+      try {
+        const data = await api<VerseQuote>("/api/pricing/verse");
+        if (!cancelled) {
+          setQuote(data);
+          setQuoteError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setQuote(null);
+          setQuoteError("VERSE price temporarily unavailable.");
+        }
+      }
+    }
+    loadQuote();
+    const t = window.setInterval(loadQuote, 45_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(t);
+    };
+  }, [readyOnServer]);
+
+  const totalBase = useMemo(() => {
+    try {
+      return items.reduce((sum, item) => {
+        if (!item.quantity.trim() || !item.unitPrice.trim()) return sum;
+        return sum + parseVerseAmount(item.unitPrice, 18) * parseQuantity(item.quantity);
+      }, 0n);
+    } catch {
+      return 0n;
+    }
+  }, [items]);
+
+  const priced = useMemo(() => {
+    if (!quote || totalBase <= 0n) return null;
+    try {
+      const priceScaled = parsePriceUsd(quote.priceUsd);
+      const minUsd = parseUsdAmount(quote.minimumUsd);
+      const usdScaled = usdValueScaled(totalBase, priceScaled, 18);
+      return {
+        usdLabel: formatUsdFromScaled(usdScaled),
+        ok: meetsMinimumUsd(totalBase, priceScaled, minUsd, 18),
+      };
+    } catch {
+      return null;
+    }
+  }, [quote, totalBase]);
+
+  function applyUsd(usd: string) {
+    if (!quote) return;
+    try {
+      const base = verseBaseForUsd(parseUsdAmount(usd), parsePriceUsd(quote.priceUsd), 18);
+      const human = formatUnits(base, 18);
+      const next = [...items];
+      const first = next[0] ?? { description: "", quantity: "1", unitPrice: "" };
+      next[0] = { ...first, quantity: first.quantity.trim() || "1", unitPrice: human };
+      setItems(next);
+    } catch {
+      setError("Could not apply that amount with the current price.");
+    }
+  }
 
   async function onSubmit(e: FormEvent, publish: boolean) {
     e.preventDefault();
     if (!readyOnServer) return;
+    if (!quote) {
+      setError("VERSE price temporarily unavailable.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -69,6 +156,10 @@ function NewInvoiceInner() {
     }
   }
 
+  const ageSec = quote ? Math.max(0, Math.round((now - new Date(quote.updatedAt).getTime()) / 1000)) : null;
+  const canSubmit = Boolean(quote) && !quoteError && !busy;
+  const belowMin = Boolean(quote && priced && !priced.ok && totalBase > 0n);
+
   return (
     <AppShell>
       <div className="max-w-xl mx-auto pb-28">
@@ -82,6 +173,12 @@ function NewInvoiceInner() {
             <div>
               <Label>Email</Label>
               <Input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="customer@email.com" />
+            </div>
+            <div>
+              <Label>Payment token</Label>
+              <div className="w-full bg-bg border border-line text-ink px-4 py-3.5 rounded-2xl font-semibold">
+                VERSE
+              </div>
             </div>
             <div>
               <Label>Invoice items</Label>
@@ -128,11 +225,43 @@ function NewInvoiceInner() {
                 <button
                   type="button"
                   className="text-sm font-medium text-purple"
-                  onClick={() => setItems([...items, { description: "", quantity: "", unitPrice: "" }])}
+                  onClick={() => setItems([...items, { description: "", quantity: "1", unitPrice: "" }])}
                 >
                   + Add item
                 </button>
               </div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted mb-2">Quick amount</p>
+              <div className="flex gap-2">
+                {["1", "10", "100"].map((usd) => (
+                  <Button
+                    key={usd}
+                    type="button"
+                    variant="ghost"
+                    disabled={!quote}
+                    onClick={() => applyUsd(usd)}
+                  >
+                    ${usd}
+                  </Button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-muted">USD equivalent of VERSE at the current server price.</p>
+            </div>
+            <div className="rounded-2xl bg-bg border border-line p-4 text-sm space-y-1">
+              <p className="font-semibold">Minimum invoice value</p>
+              {quoteError && <p className="text-error">{quoteError}</p>}
+              {quote && (
+                <>
+                  <p className="text-muted">$1 USD equivalent of VERSE</p>
+                  <p>
+                    VERSE price ${quote.priceUsd}
+                    {ageSec !== null ? ` · Updated ${ageSec}s ago` : ""}
+                  </p>
+                  <p className="text-muted">Minimum VERSE: ~{quote.minimumVerse} VERSE</p>
+                  <p className="text-xs text-muted">VERSE price updates automatically</p>
+                </>
+              )}
             </div>
             <div>
               <Label>Due date &amp; time</Label>
@@ -145,6 +274,12 @@ function NewInvoiceInner() {
               <Label>Notes</Label>
               <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes" />
             </div>
+            {belowMin && quote && (
+              <p className="text-error text-sm">
+                Minimum invoice amount is $1 USD equivalent of VERSE. Current price: ${quote.priceUsd} / VERSE.
+                Minimum: ~{quote.minimumVerse} VERSE.
+              </p>
+            )}
             {error && <p className="text-error">{error}</p>}
           </form>
         </Card>
@@ -155,16 +290,19 @@ function NewInvoiceInner() {
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs text-muted">Total</p>
-              <p className="text-xl font-bold truncate">{total > 0 ? `${Number(total.toFixed(8))} VERSE` : "—"}</p>
+              <p className="text-xl font-bold truncate">
+                {totalBase > 0n ? `${formatUnits(totalBase, 18)} VERSE` : "—"}
+              </p>
+              {priced && <p className="text-xs text-muted">≈ ${priced.usdLabel} USD</p>}
             </div>
             <div className="hidden sm:flex items-center gap-2">
               <Button type="button" variant="ghost" disabled={busy} onClick={() => router.push("/invoices")}>
                 Cancel
               </Button>
-              <Button type="button" variant="ghost" disabled={busy} onClick={(e) => onSubmit(e, false)}>
+              <Button type="button" variant="ghost" disabled={!canSubmit} onClick={(e) => onSubmit(e, false)}>
                 Save draft
               </Button>
-              <Button type="button" disabled={busy} onClick={(e) => onSubmit(e, true)}>
+              <Button type="button" disabled={!canSubmit} onClick={(e) => onSubmit(e, true)}>
                 Create invoice
               </Button>
             </div>
@@ -177,10 +315,10 @@ function NewInvoiceInner() {
             </button>
           </div>
           <div className="flex sm:hidden gap-2 mt-3">
-            <Button type="button" variant="ghost" className="flex-1" disabled={busy} onClick={(e) => onSubmit(e, false)}>
+            <Button type="button" variant="ghost" className="flex-1" disabled={!canSubmit} onClick={(e) => onSubmit(e, false)}>
               Save draft
             </Button>
-            <Button type="button" className="flex-1" disabled={busy} onClick={(e) => onSubmit(e, true)}>
+            <Button type="button" className="flex-1" disabled={!canSubmit} onClick={(e) => onSubmit(e, true)}>
               Create invoice
             </Button>
           </div>

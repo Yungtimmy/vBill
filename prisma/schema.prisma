@@ -77,9 +77,14 @@ model Invoice {
   status          InvoiceStatus @default(DRAFT)
   dueDate         DateTime?
   notes           String?
-  lineItems       Json
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  lineItems            Json
+  priceUsdAtCreation   Decimal?      @db.Decimal(38, 18)
+  usdValueAtCreation   Decimal?      @db.Decimal(38, 18)
+  minimumUsdAtCreation Decimal?      @db.Decimal(18, 8)
+  priceSource          String?
+  priceFetchedAt       DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
   payments        Payment[]
   auditLogs       AuditLog[]
 
