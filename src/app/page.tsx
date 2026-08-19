@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PublicPage } from "@/components/public-page";
+import { FeatureGuideSection } from "@/components/feature-guide";
 
 export default function HomePage() {
   return (
@@ -28,6 +29,8 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      <FeatureGuideSection />
 
       <section className="px-5 pb-24 max-w-[1200px] mx-auto">
         <p className="text-sm font-medium text-muted mb-6">How it works</p>
