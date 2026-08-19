@@ -11,13 +11,22 @@ import { OnChainProof } from "@/components/on-chain-proof";
 import { PayCard, PublicFrame } from "@/components/public-frame";
 import { erc20Abi } from "@/lib/erc20";
 import { shortenHash } from "@/lib/addresses";
+import { formatVerseAmount, parseBaseUnits } from "@/lib/amounts";
 import { isPrivyConfigured } from "@/lib/privy-public";
+
+type LineItem = {
+  description: string;
+  quantity: string;
+  unitPrice: string;
+  total: string;
+};
 
 type PayPayload = {
   network: {
     chainId: number;
     chainName: string;
     gasToken: string;
+    tokenDecimals: number;
   };
   invoice: {
     publicId: string;
@@ -31,6 +40,7 @@ type PayPayload = {
     amountDisplay: string;
     remainingBaseUnits: string;
     dueDate?: string | null;
+    items: LineItem[];
     payments: { id: string; status: string; txHash: string }[];
   };
 };
@@ -281,6 +291,7 @@ export default function PayPage() {
             <p className="text-center mt-2 text-[32px] font-bold tracking-tight">
               {data.invoice.amountDisplay} VERSE
             </p>
+            <ItemsList items={data.invoice.items} decimals={data.network.tokenDecimals} />
             <div className="mt-8 space-y-4 text-sm">
               <div>
                 <p className="text-muted">To</p>
@@ -335,6 +346,7 @@ export default function PayPage() {
         <p className="mt-3 text-sm text-muted">Polygon</p>
         <p className="mt-4 text-sm font-medium text-success">Merchant verified ✓</p>
         {sponsored && <SponsoredNote />}
+        <ItemsList items={data.invoice.items} decimals={data.network.tokenDecimals} />
         <div className="mt-6 text-left text-sm">
           <p className="text-muted">Paying to</p>
           <p className="mt-1 font-mono text-sm break-all">{data.invoice.merchantWallet}</p>
@@ -481,5 +493,33 @@ function PayActions({
 function SponsoredNote() {
   return (
     <p className="mt-4 text-xs font-medium text-purple">This transaction was sponsored by VerseBill</p>
+  );
+}
+
+function lineTotal(total: string, decimals: number): string {
+  try {
+    return formatVerseAmount(parseBaseUnits(total), decimals);
+  } catch {
+    return "—";
+  }
+}
+
+function ItemsList({ items, decimals }: { items: LineItem[]; decimals: number }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="mt-6 pt-6 border-t border-line text-left">
+      <p className="text-xs font-semibold tracking-wide text-muted uppercase">Items</p>
+      <ul className="mt-3 space-y-2 text-sm">
+        {items.map((item, i) => (
+          <li key={i} className="flex justify-between gap-4">
+            <span className="break-words">
+              {item.description}
+              {item.quantity !== "1" ? ` × ${item.quantity}` : ""}
+            </span>
+            <span className="font-semibold shrink-0">{lineTotal(item.total, decimals)} VERSE</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

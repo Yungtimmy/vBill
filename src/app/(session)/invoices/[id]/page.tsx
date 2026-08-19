@@ -10,7 +10,7 @@ import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
 import { MissingConfig } from "@/components/missing-config";
-import { formatDate } from "@/lib/status";
+import { formatDateTime } from "@/lib/status";
 import { verseLabel } from "@/lib/amounts";
 
 type Invoice = {
@@ -178,7 +178,7 @@ function InvoiceDetailInner() {
             </div>
             <p className="mt-5 text-[32px] font-bold tracking-tight">{verseLabel(invoice.amountBaseUnits)}</p>
             <div className="mt-4 space-y-1 text-sm text-muted">
-              <p>Due: {invoice.dueDate ? formatDate(invoice.dueDate) : "—"}</p>
+              <p>Due: {invoice.dueDate ? formatDateTime(invoice.dueDate) : "—"}</p>
               <p>Status: {invoice.status}</p>
             </div>
           </Card>

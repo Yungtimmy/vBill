@@ -23,12 +23,20 @@ function lineAmount(item: Line): number {
   return q * p;
 }
 
+function combineDue(dueDate: string, dueTime: string): string | undefined {
+  if (!dueDate) return undefined;
+  const time = dueTime || "23:59";
+  const d = new Date(`${dueDate}T${time}`);
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
 function NewInvoiceInner() {
   const { readyOnServer } = useAccountBootstrap();
   const router = useRouter();
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<Line[]>([{ description: "", quantity: "", unitPrice: "" }]);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +55,7 @@ function NewInvoiceInner() {
         body: JSON.stringify({
           customerName,
           customerEmail: customerEmail || undefined,
-          dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+          dueDate: combineDue(dueDate, dueTime),
           notes: notes || undefined,
           items,
           publish,
@@ -127,8 +135,11 @@ function NewInvoiceInner() {
               </div>
             </div>
             <div>
-              <Label>Due date</Label>
-              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <Label>Due date &amp; time</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                <Input type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)} />
+              </div>
             </div>
             <div>
               <Label>Notes</Label>
