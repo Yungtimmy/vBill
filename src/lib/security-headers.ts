@@ -21,6 +21,8 @@ export function buildContentSecurityPolicy({ nonce, isDev }: CspOptions): string
     // enforced by tests/csp.test.ts so it can't silently drift.
     `'${THEME_BOOT_SCRIPT_HASH}'`,
     "https://challenges.cloudflare.com",
+    // Verse Analytics (analytics.vgdh.io script.js)
+    "https://analytics.vgdh.io",
     // Dev debug scripts; production uses first-party /_vercel/insights
     // and /_vercel/speed-insights.
     "https://va.vercel-scripts.com",
@@ -39,7 +41,7 @@ export function buildContentSecurityPolicy({ nonce, isDev }: CspOptions): string
     "frame-ancestors 'none'",
     "child-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
     "frame-src https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com",
-    "connect-src 'self' https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://explorer-api.walletconnect.com https://va.vercel-scripts.com",
+    "connect-src 'self' https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://explorer-api.walletconnect.com https://va.vercel-scripts.com https://analytics.vgdh.io",
     "worker-src 'self'",
     "manifest-src 'self'",
     ...(isDev ? [] : ["upgrade-insecure-requests"]),

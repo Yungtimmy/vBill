@@ -17,6 +17,11 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+const analyticsDomain = (process.env.NEXT_PUBLIC_VERSE_ANALYTICS_DOMAIN ?? "")
+  .trim()
+  .replace(/^https?:\/\//i, "")
+  .replace(/\/+$/, "");
+
 // CSP nonce (set in middleware) is injected into inline scripts at render
 // time. Static prerendering cannot carry a per-request nonce, which blocks
 // Next's bootstrap scripts and blanks the page - keep pages server-rendered.
@@ -36,6 +41,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
         />
+        {analyticsDomain && process.env.NODE_ENV === "production" && (
+          <script
+            defer
+            data-domain={analyticsDomain}
+            src="https://analytics.vgdh.io/js/script.js"
+          />
+        )}
       </head>
       <body className={`${inter.variable} ${mono.variable} antialiased`}>
         {children}

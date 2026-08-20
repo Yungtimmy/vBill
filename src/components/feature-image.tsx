@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 /**
@@ -11,12 +12,14 @@ export function FeatureImage({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) return null;
   return (
-    <div className="flex justify-center">
-      <img
+    <div className="relative w-full aspect-[5/4] sm:max-h-[420px] md:max-h-[520px]">
+      <Image
         src={src}
         alt={alt}
+        fill
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+        className="object-contain"
         loading="lazy"
-        className="w-full max-h-[320px] sm:max-h-[420px] md:max-h-[520px] object-contain"
         onError={() => setFailed(true)}
       />
     </div>

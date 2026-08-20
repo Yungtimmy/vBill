@@ -177,43 +177,45 @@ function NewInvoiceInner() {
               <Label>Invoice items</Label>
               <div className="space-y-3">
                 {items.map((item, i) => (
-                  <div key={i} className="rounded-2xl border border-line p-3">
-                    <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+                  <div key={i} className="rounded-2xl border border-line p-3 space-y-2">
+                    <Input
+                      placeholder="Item"
+                      value={item.description}
+                      onChange={(e) => {
+                        const next = [...items];
+                        next[i] = { ...item, description: e.target.value };
+                        setItems(next);
+                      }}
+                    />
+                    <Input
+                      placeholder="No. of items"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const next = [...items];
+                        next[i] = { ...item, quantity: e.target.value };
+                        setItems(next);
+                      }}
+                    />
+                    <div className="relative">
                       <Input
-                        placeholder="Item"
-                        value={item.description}
+                        placeholder="0.00"
+                        className="pr-14"
+                        value={item.unitPrice}
                         onChange={(e) => {
                           const next = [...items];
-                          next[i] = { ...item, description: e.target.value };
+                          next[i] = { ...item, unitPrice: e.target.value };
                           setItems(next);
                         }}
                       />
-                      <Input
-                        placeholder="No. of items"
-                        className="w-24"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const next = [...items];
-                          next[i] = { ...item, quantity: e.target.value };
-                          setItems(next);
-                        }}
-                      />
-                      <div className="relative">
-                        <Input
-                          placeholder="0.00"
-                          className="w-32 pr-14"
-                          value={item.unitPrice}
-                          onChange={(e) => {
-                            const next = [...items];
-                            next[i] = { ...item, unitPrice: e.target.value };
-                            setItems(next);
-                          }}
-                        />
-                        <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted pointer-events-none select-none">
-                          VERSE
-                        </span>
-                      </div>
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted pointer-events-none select-none">
+                        VERSE
+                      </span>
                     </div>
+                    {i === 0 && belowMin && quote && (
+                      <p className="text-error text-xs">
+                        Minimum VERSE is ~{quote.minimumVerse} VERSE
+                      </p>
+                    )}
                   </div>
                 ))}
                 <button
@@ -259,12 +261,6 @@ function NewInvoiceInner() {
               <Label>Notes</Label>
               <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes" />
             </div>
-            {belowMin && quote && (
-              <p className="text-error text-sm">
-                Minimum invoice amount is $1 USD equivalent of VERSE. Current price: ${quote.priceUsd} / VERSE.
-                Minimum: ~{quote.minimumVerse} VERSE.
-              </p>
-            )}
             {error && <p className="text-error">{error}</p>}
           </form>
         </Card>
