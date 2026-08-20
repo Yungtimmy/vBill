@@ -55,12 +55,6 @@ function NewInvoiceInner() {
   const [busy, setBusy] = useState(false);
   const [quote, setQuote] = useState<VerseQuote | null>(null);
   const [quoteError, setQuoteError] = useState<string | null>(null);
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const t = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(t);
-  }, []);
 
   useEffect(() => {
     if (!readyOnServer) return;
@@ -156,7 +150,6 @@ function NewInvoiceInner() {
     }
   }
 
-  const ageSec = quote ? Math.max(0, Math.round((now - new Date(quote.updatedAt).getTime()) / 1000)) : null;
   const canSubmit = Boolean(quote) && !quoteError && !busy;
   const belowMin = Boolean(quote && priced && !priced.ok && totalBase > 0n);
 
@@ -184,19 +177,20 @@ function NewInvoiceInner() {
               <Label>Invoice items</Label>
               <div className="space-y-3">
                 {items.map((item, i) => (
-                  <div key={i} className="rounded-2xl border border-line p-3 space-y-2">
-                    <Input
-                      placeholder="Item"
-                      value={item.description}
-                      onChange={(e) => {
-                        const next = [...items];
-                        next[i] = { ...item, description: e.target.value };
-                        setItems(next);
-                      }}
-                    />
-                    <div className="grid grid-cols-2 gap-2">
+                  <div key={i} className="rounded-2xl border border-line p-3">
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+                      <Input
+                        placeholder="Item"
+                        value={item.description}
+                        onChange={(e) => {
+                          const next = [...items];
+                          next[i] = { ...item, description: e.target.value };
+                          setItems(next);
+                        }}
+                      />
                       <Input
                         placeholder="No. of items"
+                        className="w-24"
                         value={item.quantity}
                         onChange={(e) => {
                           const next = [...items];
@@ -207,7 +201,7 @@ function NewInvoiceInner() {
                       <div className="relative">
                         <Input
                           placeholder="0.00"
-                          className="pr-14"
+                          className="w-32 pr-14"
                           value={item.unitPrice}
                           onChange={(e) => {
                             const next = [...items];
@@ -248,19 +242,10 @@ function NewInvoiceInner() {
               </div>
               <p className="mt-2 text-xs text-muted">USD equivalent of VERSE at the current server price.</p>
             </div>
-            <div className="rounded-2xl bg-bg border border-line p-4 text-sm space-y-1">
+            <div className="rounded-2xl bg-bg border border-line p-4 text-sm">
               <p className="font-semibold">Minimum invoice value</p>
-              {quoteError && <p className="text-error">{quoteError}</p>}
               {quote && (
-                <>
-                  <p className="text-muted">$1 USD equivalent of VERSE</p>
-                  <p>
-                    VERSE price ${quote.priceUsd}
-                    {ageSec !== null ? ` · Updated ${ageSec}s ago` : ""}
-                  </p>
-                  <p className="text-muted">Minimum VERSE: ~{quote.minimumVerse} VERSE</p>
-                  <p className="text-xs text-muted">VERSE price updates automatically</p>
-                </>
+                <p className="text-muted mt-1">Minimum VERSE: ~{quote.minimumVerse} VERSE</p>
               )}
             </div>
             <div>

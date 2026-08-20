@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { LoaderCircle, Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const initial = (user?.email?.address ?? "V").slice(0, 1).toUpperCase();
 
   useEffect(() => {
-    if (ready && !authenticated) router.replace("/login");
+    if (ready && !authenticated) router.replace("/");
   }, [ready, authenticated, router]);
 
   useEffect(() => {
@@ -51,8 +51,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (!ready || !authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-muted text-sm">
-        Loading
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+        <LoaderCircle className="animate-spin text-purple" size={36} />
+        <span className="text-sm text-muted">Loading</span>
       </div>
     );
   }
