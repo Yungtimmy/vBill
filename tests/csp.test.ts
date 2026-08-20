@@ -20,6 +20,7 @@ describe("Privy CSP", () => {
     expect(prod).toContain("wss://www.walletlink.org");
     expect(prod).toContain("https://*.rpc.privy.systems");
     expect(prod).toContain("https://explorer-api.walletconnect.com");
+    expect(prod).toContain("https://va.vercel-scripts.com");
     expect(prod).toContain("frame-ancestors 'none'");
     expect(prod).toContain("object-src 'none'");
   });
@@ -58,6 +59,8 @@ describe("Privy CSP", () => {
     expect(isPublicPath("/pay/abc")).toBe(true);
     expect(isPublicPath("/verify/abc")).toBe(true);
     expect(isPublicPath("/refresh")).toBe(true);
+    expect(isPublicPath("/_vercel/insights/view")).toBe(true);
+    expect(isPublicPath("/_vercel/speed-insights/vitals")).toBe(true);
     expect(isPublicPath("/dashboard")).toBe(false);
     expect(isPublicPath("/settings/wallet")).toBe(false);
   });
