@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   AmountError,
   amountRelation,
+  ceilToFractionDigits,
   formatVerseAmount,
+  formatVerseAmountCeil,
   multiplyQuantity,
   parseQuantity,
   parseVerseAmount,
@@ -40,5 +42,13 @@ describe("token amounts", () => {
     expect(amountRelation(300n, 500n)).toBe("under");
     expect(amountRelation(500n, 500n)).toBe("exact");
     expect(amountRelation(600n, 500n)).toBe("over");
+  });
+
+  it("ceils VERSE amounts up to 2 decimal places", () => {
+    const oneWeiPast = parseVerseAmount("1.230000000000000001", 18);
+    expect(formatVerseAmountCeil(oneWeiPast, 18)).toBe("1.24");
+    expect(ceilToFractionDigits(oneWeiPast, 18)).toBe(parseVerseAmount("1.24", 18));
+    expect(formatVerseAmountCeil(parseVerseAmount("1.23", 18), 18)).toBe("1.23");
+    expect(formatVerseAmountCeil(parseVerseAmount("10", 18), 18)).toBe("10.00");
   });
 });

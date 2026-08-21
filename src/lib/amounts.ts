@@ -61,6 +61,34 @@ export function formatAmountRounded(
   return trimmed ? `${whole}.${trimmed}` : whole;
 }
 
+export function ceilToFractionDigits(
+  baseUnits: bigint,
+  decimals: number,
+  fractionDigits = 2,
+): bigint {
+  if (baseUnits < 0n) {
+    throw new AmountError("Amount cannot be negative.");
+  }
+  if (fractionDigits < 0 || fractionDigits > decimals) {
+    throw new AmountError("Invalid fraction digits.");
+  }
+  const factor = 10n ** BigInt(decimals - fractionDigits);
+  const rem = baseUnits % factor;
+  if (rem === 0n) return baseUnits;
+  return baseUnits + (factor - rem);
+}
+
+export function formatVerseAmountCeil(
+  baseUnits: bigint,
+  decimals: number,
+  fractionDigits = 2,
+): string {
+  const ceiled = ceilToFractionDigits(baseUnits, decimals, fractionDigits);
+  const formatted = formatUnits(ceiled, decimals);
+  const [whole, frac = ""] = formatted.split(".");
+  return `${whole}.${frac.padEnd(fractionDigits, "0").slice(0, fractionDigits)}`;
+}
+
 export function parseBaseUnits(raw: string): bigint {
   if (!/^\d+$/.test(raw)) {
     throw new AmountError("Base units must be an unsigned integer string.");

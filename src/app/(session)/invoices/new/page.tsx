@@ -2,14 +2,13 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatUnits } from "viem";
 import { AppShell } from "@/components/app-shell";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { useAccountBootstrap } from "@/components/bootstrap";
 import { api, formatError } from "@/lib/client-api";
 import { isPrivyConfigured } from "@/lib/privy-public";
 import { MissingConfig } from "@/components/missing-config";
-import { parseQuantity, parseVerseAmount } from "@/lib/amounts";
+import { formatVerseAmountCeil, parseQuantity, parseVerseAmount } from "@/lib/amounts";
 import {
   formatUsdFromScaled,
   meetsMinimumUsd,
@@ -111,7 +110,7 @@ function NewInvoiceInner() {
     if (!quote) return;
     try {
       const base = verseBaseForUsd(parseUsdAmount(usd), parsePriceUsd(quote.priceUsd), 18);
-      const human = formatUnits(base, 18);
+      const human = formatVerseAmountCeil(base, 18);
       const next = [...items];
       const first = next[0] ?? { description: "", quantity: "1", unitPrice: "" };
       next[0] = { ...first, quantity: first.quantity.trim() || "1", unitPrice: human };
@@ -272,7 +271,7 @@ function NewInvoiceInner() {
             <div className="min-w-0">
               <p className="text-xs text-muted">Total</p>
               <p className="text-xl font-bold truncate">
-                {totalBase > 0n ? `${formatUnits(totalBase, 18)} VERSE` : "—"}
+                {totalBase > 0n ? `${formatVerseAmountCeil(totalBase, 18)} VERSE` : "—"}
               </p>
               {priced && <p className="text-xs text-muted">≈ ${priced.usdLabel} USD</p>}
             </div>

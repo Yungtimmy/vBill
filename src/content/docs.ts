@@ -63,19 +63,10 @@ export const DOC_SECTIONS: DocSection[] = [
     ],
   },
   {
-    title: "Deployment",
-    items: [
-      { slug: "environment-variables", title: "Environment Variables" },
-      { slug: "local-development", title: "Local Development" },
-      { slug: "production-deployment", title: "Production Deployment" },
-    ],
-  },
-  {
     title: "Buildathon",
     items: [
       { slug: "verse-integration", title: "Verse Integration" },
       { slug: "verse-app-analytics", title: "Verse App Analytics" },
-      { slug: "verse-hub", title: "Verse Hub" },
       { slug: "polygon", title: "Polygon" },
       { slug: "verse-payment-support", title: "VERSE Payment Support" },
     ],
@@ -627,108 +618,6 @@ export const DOC_PAGES: Record<string, DocPage> = {
     ],
   },
 
-  "environment-variables": {
-    title: "Environment Variables",
-    description: "The configuration required to run VerseBill.",
-    blocks: [
-      {
-        type: "p",
-        text: "These are the variables the project actually reads. Values shown are placeholders; real secrets live only in the deployment environment.",
-      },
-      {
-        type: "code",
-        lang: "bash",
-        title: "Database (Supabase Postgres)",
-        code: `DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?pgbouncer=true
-DIRECT_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres`,
-      },
-      {
-        type: "code",
-        lang: "bash",
-        title: "Privy",
-        code: `NEXT_PUBLIC_PRIVY_APP_ID=YOUR_APP_ID_HERE
-PRIVY_APP_SECRET=YOUR_VALUE_HERE
-PRIVY_VERIFICATION_KEY=YOUR_VALUE_HERE
-PRIVY_USE_HTTPONLY_COOKIES=false`,
-      },
-      {
-        type: "code",
-        lang: "bash",
-        title: "Network / VERSE",
-        code: `VERSE_NETWORK_MODE=production
-NEXT_PUBLIC_NETWORK_MODE=production
-POLYGON_RPC_URL=YOUR_RPC_URL_HERE
-VERSE_REQUIRED_CONFIRMATIONS=30`,
-      },
-      {
-        type: "code",
-        lang: "bash",
-        title: "Misc",
-        code: `APP_URL=YOUR_VALUE_HERE
-CRON_SECRET=YOUR_VALUE_HERE
-RESEND_API_KEY=YOUR_VALUE_HERE
-VERSE_ANALYTICS_ENDPOINT=YOUR_VALUE_HERE
-VERSE_ANALYTICS_KEY=YOUR_VALUE_HERE`,
-      },
-      {
-        type: "callout",
-        tone: "warn",
-        text: "Never place real secrets in documentation or the repository. See .env.example for the full annotated list.",
-      },
-    ],
-  },
-
-  "local-development": {
-    title: "Local Development",
-    description: "Running VerseBill on your machine.",
-    blocks: [
-      {
-        type: "code",
-        lang: "bash",
-        title: "Install and run",
-        code: `npm install
-cp .env.example .env.local
-# fill in DATABASE_URL, DIRECT_URL, Privy, and POLYGON_RPC_URL
-npx prisma migrate deploy
-npm run dev`,
-      },
-      {
-        type: "list",
-        items: [
-          "Use VERSE_NETWORK_MODE=demo for local testing against a test chain",
-          "Use VERSE_NETWORK_MODE=production to use Polygon PoS and real VERSE",
-          "The production build is tested with npm run build && npm start",
-        ],
-      },
-    ],
-  },
-
-  "production-deployment": {
-    title: "Production Deployment",
-    description: "How VerseBill is built and deployed.",
-    blocks: [
-      {
-        type: "p",
-        text: "VerseBill is deployed on Vercel. The build runs Prisma migrations and then the Next.js production build.",
-      },
-      {
-        type: "code",
-        lang: "bash",
-        title: "Build command",
-        code: "prisma migrate deploy && next build",
-      },
-      {
-        type: "list",
-        items: [
-          "Set all environment variables in the Vercel dashboard",
-          "Use VERSE_NETWORK_MODE=production and NEXT_PUBLIC_NETWORK_MODE=production",
-          "Point DATABASE_URL and DIRECT_URL at the Supabase poolers",
-          "Configure the cron secret to match Vercel Cron",
-        ],
-      },
-    ],
-  },
-
   "verse-integration": {
     title: "Verse Integration",
     description: "How VerseBill integrates with the Verse ecosystem.",
@@ -769,21 +658,6 @@ npm run dev`,
           "The analytics domain should correspond to the deployed VerseBill application domain",
           "If the endpoint or key is unset, events are simply not sent",
         ],
-      },
-    ],
-  },
-
-  "verse-hub": {
-    title: "Verse Hub",
-    description: "Verse Hub registration status.",
-    blocks: [
-      {
-        type: "p",
-        text: "Verse Hub registration is part of the Verse Buildathon requirements. This section tracks its status.",
-      },
-      {
-        type: "check",
-        items: ["Verse Hub registration — not yet completed"],
       },
     ],
   },
